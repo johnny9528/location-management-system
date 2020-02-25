@@ -16,7 +16,7 @@ const BASE = ''
 export function reqLogin(username, password) {
   return ajax('/login', {username, password}, 'POST')
 }*/
-export const reqLogin = (username, password) => ajax(BASE + '/login', {username, password}, 'POST')
+// export const reqLogin = (username, password) => ajax(BASE + '/login', {username, password}, 'POST')
 
 // 获取一级/二级分类的列表
 export const reqCategorys = (parentId) => ajax(BASE + '/manage/category/list', {parentId})
@@ -73,9 +73,9 @@ export const reqUpdateRole = (role) => ajax(BASE + '/manage/role/update', role, 
 
 
 // 获取所有用户的列表
-export const reqUsers = () => ajax(BASE + '/manage/user/list')
+// export const reqUsers = () => ajax(BASE + '/manage/user/list')
 // 删除指定用户
-export const reqDeleteUser = (userId) => ajax(BASE + '/manage/user/delete', {userId}, 'POST')
+// export const reqDeleteUser = (userId) => ajax(BASE + '/manage/user/delete', {userId}, 'POST')
 // 添加/更新用户
 export const reqAddOrUpdateUser = (user) => ajax(BASE + '/manage/user/'+(user._id ? 'update' : 'add'), user, 'POST')
 
@@ -116,3 +116,39 @@ jsonp解决ajax跨域的原理
    浏览器端:
       收到响应自动执行函数调用的js代码, 也就执行了提前定义好的回调函数, 并得到了需要的结果数据
  */
+
+
+
+/* 我们的api */
+// 管理员登录
+export const reqAdminLogin = (username, password) => ajax(BASE + '/admin/login', {username, password}, 'POST')
+
+//admin获得tag
+export const reqTags = () => ajax(BASE + '/admin/tag')
+
+//admin搜索tag
+export const reqSearchTags = (searchType, searchKey) => ajax(BASE + '/admin/tag/search', {[searchType]: searchKey})
+
+//admin添加tag
+export const reqAddTag = (tId, username, description) => ajax(BASE + '/admin/tag', {tId, username, description}, 'POST')
+
+//admin更新tag
+export const reqUpdateTag = (id, tId, description) => ajax(BASE + '/admin/tag', {id, tId, description}, 'PUT')
+
+//admin删除tag
+export const reqDeleteTag = (id) => ajax(BASE + '/admin/tag', {id}, 'DELETE')
+
+//admin获得user
+export const reqUsers = () => ajax(BASE + '/admin/user')
+
+//admin添加user
+export const reqAddUser = (username, password) => ajax(BASE + '/admin/user', {username, password}, 'POST')
+
+//admin更新user用户名
+export const reqUpdateUserName = (id, username) => ajax(BASE + '/admin/user', {id, username}, 'PUT')
+
+//admin更新user密码
+export const reqUpdateUserPassword = (id, password) => ajax(BASE + '/admin/user', {id, password}, 'PUT')
+
+//admin删除user
+export const reqDeleteUser = (id) => ajax(BASE + '/admin/user', {id}, 'DELETE')

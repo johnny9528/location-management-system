@@ -1,0 +1,7 @@
+*npm-debug.log
+*.swp
+node_modules
+package-lock.json
+.DS_Store
+.vscode/*
+logs

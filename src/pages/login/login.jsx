@@ -10,7 +10,7 @@ import {
 import './login.less'
 // import logo from '../../assets/images/logo.png'
 // import logo from '../../assets/images/icc_logo.jpg'
-import {reqLogin} from '../../api'
+import {reqAdminLogin} from '../../api'
 import memoryUtils from '../../utils/memoryUtils'
 import storageUtils from '../../utils/storageUtils'
 
@@ -24,6 +24,7 @@ const Item = Form.Item // 不能写在import之前
 class Login extends Component {
 
   handleSubmit = (event) => {
+    console.log('start')
 
     // 阻止事件的默认行为
     event.preventDefault()
@@ -35,14 +36,16 @@ class Login extends Component {
         // console.log('提交登陆的ajax请求', values)
         // 请求登陆
         const {username, password} = values
-        const result = await reqLogin(username, password) // {status: 0, data: user}  {status: 1, msg: 'xxx'}
-        // console.log('请求成功', result)
-        if (result.status===0) { // 登陆成功
+        const result = await reqAdminLogin(username, password) // {status: 0, data: user}  {status: 1, msg: 'xxx'}
+        console.log('请求成功', result)
+        if (result.code===200) { // 登陆成功
           // 提示登陆成功
           message.success('登陆成功')
 
           // 保存user
-          const user = result.data
+          // const user = result.data
+          const user = username
+          // const token = result.token
           memoryUtils.user = user // 保存在内存中
           storageUtils.saveUser(user) // 保存到local中
 
@@ -95,10 +98,10 @@ class Login extends Component {
   render () {
 
     // 如果用户已经登陆, 自动跳转到管理界面
-    const user = memoryUtils.user
-    if(user && user._id) {
-      return <Redirect to='/'/>
-    }
+    // const user = memoryUtils.user
+    // if(user && user._id) {
+    //   return <Redirect to='/'/>
+    // }
 
     // 得到具强大功能的form对象
     const form = this.props.form

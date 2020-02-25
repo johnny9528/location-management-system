@@ -8,17 +8,17 @@ const menuList = [
 
   {
     title:'anchor管理',
-    key:'/location/anchor',
+    key:'/anchor',
     icon:'bars',
   },
   {
     title:'tag管理',
-    key:'/location/tag',
+    key:'/tag',
     icon:'appstore',
   },
   {
     title:'用户管理',
-    key:'/location/user',
+    key:'/user',
     icon:'user',
   },
 

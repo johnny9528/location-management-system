@@ -18,8 +18,9 @@ import NotFound from '../not-found/not-found'
 import Order from '../order/order'
 
 import Anchor from '../location/anchor';
-import Tag from '../location/tag';
-import location_user from '../location/user';
+// import Tag from '../location/tag';
+import Tag from '../tag/tag';
+// import location_user from '../location/user';
 
 
 const { Footer, Sider, Content } = Layout
@@ -29,12 +30,12 @@ const { Footer, Sider, Content } = Layout
  */
 export default class Admin extends Component {
   render () {
-    const user = memoryUtils.user
+    // const user = memoryUtils.user
     // 如果内存没有存储user ==> 当前没有登陆
-    if(!user || !user._id) {
-      // 自动跳转到登陆(在render()中)
-      return <Redirect to='/login'/>
-    }
+    // if(!user || !user._id) {
+    //   // 自动跳转到登陆(在render()中)
+    //   return <Redirect to='/login'/>
+    // }
     return (
       <Layout style={{minHeight: '100%'}}>
         <Sider>
@@ -46,14 +47,14 @@ export default class Admin extends Component {
             <Switch>
               <Redirect from='/' exact to='/home'/>
 
-              <Route path='/location/anchor' component={Anchor}/>
-              <Route path='/location/tag' component={Tag}/>
-              <Route path='/location/user' component={location_user}/>
+              <Route path='/anchor' component={Anchor}/>
+              <Route path='/tag' component={Tag}/>
+              {/* <Route path='/location/user' component={location_user}/> */}
+              <Route path='/user' component={User}/>
 
               <Route path='/home' component={Home}/>
               <Route path='/category' component={Category}/>
               <Route path='/product' component={Product}/>
-              <Route path='/user' component={User}/>
               <Route path='/role' component={Role}/>
               <Route path="/charts/bar" component={Bar}/>
               <Route path="/charts/pie" component={Pie}/>
