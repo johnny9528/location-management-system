@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import pic_map from '../../assets/images/map.png'
+// import pic_map from '../../assets/images/map.png'
 import './home.less'
 export default class Home extends Component {
   constructor(props) {
