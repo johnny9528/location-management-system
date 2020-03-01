@@ -1,18 +1,21 @@
-import React, {Component} from 'react'
-import {Redirect} from 'react-router-dom'
+import React, { Component } from 'react'
+// import { Redirect } from 'react-router-dom'
 import {
   Form,
   Icon,
   Input,
   Button,
-  message
+  message,
+  Radio,
 } from 'antd'
 import './login.less'
 // import logo from '../../assets/images/logo.png'
 // import logo from '../../assets/images/icc_logo.jpg'
-import {reqAdminLogin} from '../../api'
+import { reqAdminLogin, reqUserLogin, reqUserRegister } from '../../api'
 import memoryUtils from '../../utils/memoryUtils'
 import storageUtils from '../../utils/storageUtils'
+import FormItem from 'antd/lib/form/FormItem'
+// import LinkButton from '../../components/link-button'
 
 
 const Item = Form.Item // 不能写在import之前
@@ -22,7 +25,16 @@ const Item = Form.Item // 不能写在import之前
 登陆的路由组件
  */
 class Login extends Component {
+  state = {
+    radio: 1,
+  }
 
+  handleRadio = e => {
+    console.log("the radio is " + e.target.value);
+    this.setState({
+      radio: e.target.value,
+    })
+  }
   handleSubmit = (event) => {
     console.log('start')
 
@@ -35,27 +47,80 @@ class Login extends Component {
       if (!err) {
         // console.log('提交登陆的ajax请求', values)
         // 请求登陆
-        const {username, password} = values
-        const result = await reqAdminLogin(username, password) // {status: 0, data: user}  {status: 1, msg: 'xxx'}
-        console.log('请求成功', result)
-        if (result.code===200) { // 登陆成功
-          // 提示登陆成功
-          message.success('登陆成功')
+        const { username, password } = values
 
-          // 保存user
-          // const user = result.data
-          const user = username
-          // const token = result.token
-          memoryUtils.user = user // 保存在内存中
-          storageUtils.saveUser(user) // 保存到local中
+        // radio = 1, 管理员登陆
+        if (this.state.radio === 1) {
+          const result = await reqAdminLogin(username, password) // {status: 0, data: user}  {status: 1, msg: 'xxx'}
+          console.log('请求成功', result)
+          if (result.code === 200) { // 登陆成功
+            // 提示登陆成功
+            message.success('登陆成功')
 
-          // 跳转到管理界面 (不需要再回退回到登陆)
-          this.props.history.replace('/')
+            // 保存user
+            // const user = result.data
+            const user = username
+            // const token = result.token
+            memoryUtils.user = user // 保存在内存中
+            memoryUtils.login_type = 'login_admin';
+            storageUtils.saveUser(user) // 保存到local中
 
-        } else { // 登陆失败
-          // 提示错误信息
-          message.error(result.msg)
+            // 跳转到管理界面 (不需要再回退回到登陆)
+            this.props.history.replace('/')
+
+          } else { // 登陆失败
+            // 提示错误信息
+            console.log("管理员登陆失败,用户名或者密码错误")
+            message.error("用户名或者密码错误");
+          }
+        } else if (this.state.radio === 2) {  // 用户登陆
+          const result = await reqUserLogin(username, password)
+          console.log('user登陆请求成功', result)
+          if (result.code === 200) { // 登陆成功
+            // 提示登陆成功
+            message.success('用户登陆成功')
+
+            // 保存user
+            // const user = result.data
+            const user = username
+            // const token = result.token
+            memoryUtils.user = user // 保存在内存中
+            memoryUtils.login_type = 'login_user'
+            storageUtils.saveUser(user) // 保存到local中
+
+            // 跳转到管理界面 (不需要再回退回到登陆)
+            this.props.history.replace('/')
+
+          } else { // 登陆失败
+            // 提示错误信息
+            console.log("用户登陆失败,用户名或者密码错误")
+            message.error("用户名或者密码错误");
+          }
+        } else if (this.state.radio === 3) {
+          const result = await reqUserRegister(username, password)
+          console.log('user注册请求成功', result)
+          if (result.code === 200) { // 登陆成功
+            // 提示登陆成功
+            message.success('用户注册成功')
+
+            // 保存user
+            // const user = result.data
+            const user = username
+            // const token = result.token
+            memoryUtils.user = user // 保存在内存中
+            memoryUtils.login_type = 'login_user'
+            storageUtils.saveUser(user) // 保存到local中
+
+            // 跳转到管理界面 (不需要再回退回到登陆)
+            this.props.history.replace('/')
+
+          } else { // 登陆失败
+            // 提示错误信息
+            console.log("用户登陆失败,用户名或者密码错误")
+            message.error("用户名或者密码错误");
+          }
         }
+
 
       } else {
         console.log('检验失败!')
@@ -75,17 +140,17 @@ class Login extends Component {
   /*
    用户名/密码的的合法性要求
      1). 必须输入
-     2). 必须大于等于4位
+     2). 必须大于等于3位
      3). 必须小于等于12位
      4). 必须是英文、数字或下划线组成
     */
   validatePwd = (rule, value, callback) => {
     console.log('validatePwd()', rule, value)
-    if(!value) {
+    if (!value) {
       callback('密码必须输入')
-    } else if (value.length<4) {
-      callback('密码长度不能小于4位')
-    } else if (value.length>12) {
+    } else if (value.length < 3) {
+      callback('密码长度不能小于3位')
+    } else if (value.length > 12) {
       callback('密码长度不能大于12位')
     } else if (!/^[a-zA-Z0-9_]+$/.test(value)) {
       callback('密码必须是英文、数字或下划线组成')
@@ -95,7 +160,7 @@ class Login extends Component {
     // callback('xxxx') // 验证失败, 并指定提示的文本
   }
 
-  render () {
+  render() {
 
     // 如果用户已经登陆, 自动跳转到管理界面
     // const user = memoryUtils.user
@@ -162,11 +227,25 @@ class Login extends Component {
               }
 
             </Form.Item>
+            <FormItem>
+              <Radio.Group onChange={this.handleRadio} value={this.state.radio}>
+                <Radio value={1}>管理员登陆</Radio>
+                <Radio value={2}>用户登陆</Radio>
+                <Radio value={3}>用户注册</Radio>
+              </Radio.Group>
+            </FormItem>
             <Form.Item>
               <Button type="primary" htmlType="submit" className="login-form-button">
-                登陆
+                {this.state.radio === 3 ? '注册并登陆' : '登陆'}
               </Button>
             </Form.Item>
+            {/* <Form.Item>
+              <Button type="primary" className="login-form-button" onClick={() => 
+                this.props.history.replace('/register')
+              }>
+                免费注册
+              </Button>
+            </Form.Item> */}
           </Form>
         </section>
       </div>

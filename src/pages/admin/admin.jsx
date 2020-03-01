@@ -1,3 +1,4 @@
+// import React, {Component, memo} from 'react'
 import React, {Component} from 'react'
 import {Redirect, Route, Switch} from 'react-router-dom'
 import { Layout } from 'antd'
@@ -36,11 +37,14 @@ export default class Admin extends Component {
     //   // 自动跳转到登陆(在render()中)
     //   return <Redirect to='/login'/>
     // }
+    const login_type = memoryUtils.login_type;
+    console.log("the login type in / is ....." + login_type);
     return (
       <Layout style={{minHeight: '100%'}}>
-        <Sider>
+        {login_type === 'login_admin' ? 
+        (<Sider>
           <LeftNav/>
-        </Sider>
+        </Sider>) : null }
         <Layout>
           <Header>Header</Header>
           <Content style={{margin: 20, backgroundColor: '#fff'}}>

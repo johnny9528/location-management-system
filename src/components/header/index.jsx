@@ -107,7 +107,7 @@ class Header extends Component {
     const username = memoryUtils.user.username
 
     // 得到当前需要显示的title
-    const title = this.getTitle()
+    // const title = this.getTitle()
     return (
       <div className="header">
         <div className="header-top">
@@ -115,7 +115,8 @@ class Header extends Component {
           <LinkButton onClick={this.logout}>退出</LinkButton>
         </div>
         <div className="header-bottom">
-          <div className="header-bottom-left">{title}</div>
+          {/* <div className="header-bottom-left">{title}</div> */}
+          <div className="header-bottom-left"></div>
           <div className="header-bottom-right">
             <span>{currentTime}</span>
             <img src={dayPictureUrl} alt="weather"/>
