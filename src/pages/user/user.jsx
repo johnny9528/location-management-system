@@ -7,7 +7,6 @@ import { reqUsers, reqAddUser, reqUpdateUserName, reqUpdateUserPassword, reqDele
 import AddForm from './add-form'
 import UpdateForm from './update-form'
 // const expandedRowRender = record => <p>{record.desc}</p>;
-// import LinkedButton from '../../components/link-button'
 /*
 用户路由
  */
@@ -82,9 +81,9 @@ export default class User extends Component {
                 {/* <a>Pause</a>
                 <a>Stop</a> */}
                 <Dropdown overlay={menu(user)}>
-                  <span>
+                  <LinkButton>
                     修改 <Icon type="down" />
-                  </span>
+                  </LinkButton>
                 </Dropdown>
               </span>
               <Divider type="vertical" />
