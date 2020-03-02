@@ -123,6 +123,12 @@ jsonp解决ajax跨域的原理
 // 管理员登录
 export const reqAdminLogin = (username, password) => ajax(BASE + '/admin/login', {username, password}, 'POST')
 
+//用户登陆
+export const reqUserLogin = (username, password) => ajax(BASE + '/login', {username, password}, 'POST')
+
+//用户注册
+export const reqUserRegister = (username, password) => ajax(BASE + '/register', {username, password}, 'POST')
+
 //admin获得tag
 export const reqTags = () => ajax(BASE + '/admin/tag')
 
