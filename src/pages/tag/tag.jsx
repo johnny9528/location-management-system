@@ -10,7 +10,8 @@ import {
   Modal,
   Popconfirm,
   Badge,
-  Divider
+  Divider,
+  Tooltip
 } from 'antd'
 
 import LinkButton from '../../components/link-button'
@@ -25,7 +26,7 @@ const Option = Select.Option
 /*
 Product的默认子路由组件
  */
-export default class ProductHome extends Component {
+export default class Tag extends Component {
 
   state = {
     tags: [],
@@ -35,6 +36,8 @@ export default class ProductHome extends Component {
     searchKey: '', // 搜索的关键字
     searchType: 'searchTId', // 根据哪个字段搜索
     showStatus: 0,
+    searchText: '',
+    searchedColumn: '',
   }
 
   /*
@@ -43,22 +46,48 @@ export default class ProductHome extends Component {
   initColumns = () => {
     this.columns = [
       {
-        width: 200,
+        width:'10%',
         title: '编号',
         dataIndex: 'tId',
+        sorter: (a, b) => a.tId > b.tId
       },
       {
-        width: 200,
+        width:'10%',
         title: '用户名',
         dataIndex: 'user',
         render: (user) => user.username
       },
       {
+        width:'10%',
         title: '描述',
         dataIndex: 'description',
+        onCell: () => {
+          return {
+            style: {
+              maxWidth: 150,
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow:'ellipsis',
+              cursor:'pointer'
+            }
+          }
+        },
+        render: (text) => <Tooltip placement="topLeft" title={text}>{text}</Tooltip>
       },
       {
-        width: 100,
+        width:'10%',
+        title: '创建时间',
+        dataIndex: 'createTime',
+        sorter: (a, b) => a.createTime > b.createTime,
+      },
+      {
+        width:'10%',
+        title: '最近修改时间',
+        dataIndex: 'updateTime',
+        sorter: (a, b) => a.updateTime > b.updateTime
+      },
+      {
+        width:'10%',
         title: '状态',
         dataIndex: 'status',
         render: (status) => {
@@ -71,43 +100,15 @@ export default class ProductHome extends Component {
           )
         }
       },
-    //   {
-    //     title: '价格',
-    //     dataIndex: 'price',
-    //     render: (price) => '¥' + price  // 当前指定了对应的属性, 传入的是对应的属性值
-    //   },
-    //   {
-    //     width: 100,
-    //     title: '状态',
-    //     // dataIndex: 'status',
-    //     render: (product) => {
-    //       const {status, _id} = product
-    //       const newStatus = status===1 ? 2 : 1
-    //       return (
-    //         <span>
-    //           <Button
-    //             type='primary'
-    //             onClick={() => this.updateStatus(_id, newStatus)}
-    //           >
-    //             {status===1 ? '下架' : '上架'}
-    //           </Button>
-    //           <span>{status===1 ? '在售' : '已下架'}</span>
-    //         </span>
-    //       )
-    //     }
-    //   },
       {
-        width: 200,
+        width:'10%',
         title: '操作',
         render: (tag) => {
           return (
             <span>
               {/*将product对象使用state传递给目标路由组件*/}
-              {/* <LinkButton onClick={() => this.props.history.push('/product/detail', {product})}>详情</LinkButton>
-              <LinkButton onClick={() => this.props.history.push('/product/addupdate', product)}>修改</LinkButton> */}
               <LinkButton onClick={() => this.showUpdate(tag)}>修改</LinkButton>
               <Divider type="vertical" />
-              {/* <LinkButton onClick={() => this.deleteTag(tag._id)}>删除</LinkButton> */}
               <Popconfirm
                 title="确定删除此标签?"
                 onConfirm={() => this.deleteTag(tag._id)}
@@ -240,6 +241,9 @@ export default class ProductHome extends Component {
     })
   }
 
+  /*
+  删除tag
+  */
   deleteTag = async (id) => {
     const result = await reqDeleteTag(id)
     console.log(id)
@@ -251,6 +255,13 @@ export default class ProductHome extends Component {
     }
   }
 
+  refresh () {
+    this.setState({ searchKey: ''}, () => {
+      this.getTags()
+    });
+
+  }
+
   componentWillMount () {
     this.initColumns()
   }
@@ -260,77 +271,82 @@ export default class ProductHome extends Component {
   }
 
   render() {
+    function onChange(pagination, filters, sorter, extra) {
+      console.log('params', pagination, filters, sorter, extra);
+    }
 
     // 取出状态数据
     const {tags, loading, showStatus, searchType, searchKey} = this.state
 
     const title = (
-        <span>
-          <Select
-            value= {searchType}
-            style={{width: 150}}
-            onChange={value => this.setState({searchType: value})}
-          >
-            <Option value='searchTId'>按编号搜索</Option>
-            <Option value='searchDesc'>按描述搜索</Option>
-          </Select>
-          <Input
-            placeholder='关键字'
-            style={{width: 150, margin: '0 15px'}}
-            value={searchKey}
-            onChange={event => this.setState({searchKey:event.target.value})}
-          />
-          <Button type='primary' onClick={() => this.getTags(1)}>搜索</Button>
-        </span>
-      )
-
-      const extra = (
-        <Button type='primary' onClick={() => this.showAdd()}>
-        <Icon type='plus'/>
-        添加
-      </Button>
-      )
-
-      return (
-        <Card title={title} extra={extra}>
-          <Table
-            bordered
-            rowKey='_id'
-            loading={loading}
-            dataSource={tags}
-            columns={this.columns}
-            pagination={{
-            //   current: this.pageNum,
-            //   total,
-              defaultPageSize: PAGE_SIZE,
-              showQuickJumper: true,
-            //   onChange: this.getProducts
-            }}
-          />
-
-        <Modal
-          title="添加用户"
-          visible={showStatus===1}
-          onOk={this.addTag}
-          onCancel={this.handleCancel}
+      <div>
+        <Select
+          value= {searchType}
+          style={{width: 150}}
+          onChange={value => this.setState({searchType: value})}
         >
-          <AddForm
-            setForm={(form) => {this.form = form}}
-          />
-        </Modal>
+          <Option value='searchTId'>按编号搜索</Option>
+          <Option value='searchDesc'>按描述搜索</Option>
+        </Select>
+        <Input
+          placeholder='关键字'
+          style={{width: 150, margin: '0 15px'}}
+          value={searchKey}
+          onChange={event => this.setState({searchKey:event.target.value})}
+        />
+        <Button type='primary' icon="search" onClick={() => this.getTags(1)}>搜索</Button>
+        <Button type='primary' icon="redo" style={{marginLeft: 10}} onClick={() => this.refresh()}>刷新</Button>
+      </div>
+    )
 
-        <Modal
-          title="更新用户"
-          visible={showStatus===2}
-          onOk={this.updateTag}
-          onCancel={this.handleCancel}
-        >
-          <UpdateForm
-            tag = {this.tag}
-            setForm={(form) => {this.form = form}}
-          />
-        </Modal>
-        </Card>
-      )
+    const extra = (
+      <Button type='primary' onClick={() => this.showAdd()}>
+      <Icon type='plus'/>
+      添加
+    </Button>
+    )
+
+    return (
+      <Card title={title} extra={extra}>
+        <Table
+          bordered
+          rowKey='_id'
+          loading={loading}
+          dataSource={tags}
+          columns={this.columns}
+          pagination={{
+          //   current: this.pageNum,
+          //   total,
+            defaultPageSize: PAGE_SIZE,
+            showQuickJumper: true,
+          //   onChange: this.getProducts
+          }}
+          onChange={onChange}
+        />
+
+      <Modal
+        title="添加用户"
+        visible={showStatus===1}
+        onOk={this.addTag}
+        onCancel={this.handleCancel}
+      >
+        <AddForm
+          setForm={(form) => {this.form = form}}
+        />
+      </Modal>
+
+      <Modal
+        title="更新用户"
+        visible={showStatus===2}
+        onOk={this.updateTag}
+        onCancel={this.handleCancel}
+      >
+        <UpdateForm
+          tag = {this.tag}
+          setForm={(form) => {this.form = form}}
+        />
+      </Modal>
+      </Card>
+    )
   }
 }

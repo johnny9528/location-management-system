@@ -6,7 +6,7 @@ import {Menu, Icon} from 'antd';
 import logo from '../../assets/images/icc_logo.jpg'
 import menuList from '../../config/menuConfig'
 import './index.less'
-import memoryUtils from "../../utils/memoryUtils";
+// import memoryUtils from "../../utils/memoryUtils";
 
 const SubMenu = Menu.SubMenu;
 

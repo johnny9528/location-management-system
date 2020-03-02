@@ -1,193 +1,5 @@
-// import React, {Component} from 'react'
-// import {
-//   Card,
-//   Button,
-//   Table,
-//   Modal,
-//   message
-// } from 'antd'
-// import {formateDate} from "../../utils/dateUtils"
-// import LinkButton from "../../components/link-button/index"
-// import {reqDeleteUser, reqUsers, reqAddOrUpdateUser} from "../../api/index";
-// import UserForm from './user-form'
-
-// /*
-// 用户路由
-//  */
-// export default class User extends Component {
-
-//   state = {
-//     users: [], // 所有用户列表
-//     roles: [], // 所有角色列表
-//     isShow: false, // 是否显示确认框
-//   }
-
-//   initColumns = () => {
-//     this.columns = [
-//       {
-//         title: '用户名',
-//         dataIndex: 'username'
-//       },
-//       {
-//         title: '邮箱',
-//         dataIndex: 'email'
-//       },
-
-//       {
-//         title: '电话',
-//         dataIndex: 'phone'
-//       },
-//       {
-//         title: '注册时间',
-//         dataIndex: 'create_time',
-//         render: formateDate
-//       },
-//       {
-//         title: '所属角色',
-//         dataIndex: 'role_id',
-//         render: (role_id) => this.roleNames[role_id]
-//       },
-//       {
-//         title: '操作',
-//         render: (user) => (
-//           <span>
-//             <LinkButton onClick={() => this.showUpdate(user)}>修改</LinkButton>
-//             <LinkButton onClick={() => this.deleteUser(user)}>删除</LinkButton>
-//           </span>
-//         )
-//       },
-//     ]
-//   }
-
-//   /*
-//   根据role的数组, 生成包含所有角色名的对象(属性名用角色id值)
-//    */
-//   initRoleNames = (roles) => {
-//     const roleNames = roles.reduce((pre, role) => {
-//       pre[role._id] = role.name
-//       return pre
-//     }, {})
-//     // 保存
-//     this.roleNames = roleNames
-//   }
-
-//   /*
-//   显示添加界面
-//    */
-//   showAdd = () => {
-//     this.user = null // 去除前面保存的user
-//     this.setState({isShow: true})
-//   }
-
-//   /*
-//   显示修改界面
-//    */
-//   showUpdate = (user) => {
-//     this.user = user // 保存user
-//     this.setState({
-//       isShow: true
-//     })
-//   }
-
-//   /*
-//   删除指定用户
-//    */
-//   deleteUser = (user) => {
-//     Modal.confirm({
-//       title: `确认删除${user.username}吗?`,
-//       onOk: async () => {
-//         const result = await reqDeleteUser(user._id)
-//         if(result.status===0) {
-//           message.success('删除用户成功!')
-//           this.getUsers()
-//         }
-//       }
-//     })
-//   }
-
-//   /*
-//   添加/更新用户
-//    */
-//   addOrUpdateUser = async () => {
-
-//     this.setState({isShow: false})
-
-//     // 1. 收集输入数据
-//     const user = this.form.getFieldsValue()
-//     this.form.resetFields()
-//     // 如果是更新, 需要给user指定_id属性
-//     if (this.user) {
-//       user._id = this.user._id
-//     }
-
-//     // 2. 提交添加的请求
-//     const result = await reqAddOrUpdateUser(user)
-//     // 3. 更新列表显示
-//     if(result.status===0) {
-//       message.success(`${this.user ? '修改' : '添加'}用户成功`)
-//       this.getUsers()
-//     }
-//   }
-
-//   getUsers = async () => {
-//     const result = await reqUsers()
-//     if (result.status===0) {
-//       const {users, roles} = result.data
-//       this.initRoleNames(roles)
-//       this.setState({
-//         users,
-//         roles
-//       })
-//     }
-//   }
-
-//   componentWillMount () {
-//     this.initColumns()
-//   }
-
-//   componentDidMount () {
-//     this.getUsers()
-//   }
-
-//   render() {
-
-//     const {users, roles, isShow} = this.state
-//     const user = this.user || {}
-
-//     const title = <Button type='primary' onClick={this.showAdd}>创建用户</Button>
-
-//     return (
-//       <Card title={title}>
-//         <Table
-//           bordered
-//           rowKey='_id'
-//           dataSource={users}
-//           columns={this.columns}
-//           pagination={{defaultPageSize: 2}}
-//         />
-
-//         <Modal
-//           title={user._id ? '修改用户' : '添加用户'}
-//           visible={isShow}
-//           onOk={this.addOrUpdateUser}
-//           onCancel={() => {
-//             this.form.resetFields()
-//             this.setState({isShow: false})
-//           }}
-//         >
-//           <UserForm
-//             setForm={form => this.form = form}
-//             roles={roles}
-//             user={user}
-//           />
-//         </Modal>
-
-//       </Card>
-//     )
-//   }
-// }
 import React, { Component } from "react";
-import { Table, Badge, message, Menu, Button, Modal, Card, Icon, Popconfirm, Dropdown, Divider } from "antd";
+import { Table, Badge, message, Menu, Button, Modal, Card, Icon, Popconfirm, Dropdown, Divider, Tooltip } from "antd";
 // import {formateDate} from "../../utils/dateUtils"
 import LinkButton from "../../components/link-button/index";
 import { reqUsers, reqAddUser, reqUpdateUserName, reqUpdateUserPassword, reqDeleteUser } from "../../api/index";
@@ -203,9 +15,11 @@ export default class User extends Component {
     // users: [], // 所有用户列表
     // tags: [], // 所有标签列表
     data: [],
+    userLevel: 1,
     isShow: false, // 是否显示确认框
     showStatus: 0,
-    loading: false
+    loading: false,
+    expandedRowKeys: [] //装展开行的key
   };
 
   initColumns = () => {
@@ -236,23 +50,29 @@ export default class User extends Component {
     );
     this.userCol = [
       {
+        width:'20%',
         title: "用户名",
-        dataIndex: "username"
-        // key: "username"
+        dataIndex: "username",
       },
       {
-        title: "创建时间",
-        dataIndex: "createdTime"
-        // key: "createdTime"
-      },
-      {
+        width:'20%',
         title: "上次登录时间",
-        dataIndex: "lastLoginTime"
-        // key: "lastLoginTime"
+        dataIndex: "lastLoginTime",
       },
       {
+        width:'20%',
+        title: '创建时间',
+        dataIndex: 'createTime',
+      },
+      {
+        width:'20%',
+        title: '最近修改时间',
+        dataIndex: 'updateTime',
+      },
+      {
+        width:'20%',
         title: "Action",
-        key: "operation",
+        dataIndex: 'operation',
         render: (user) => {
           return (
             <span>
@@ -261,9 +81,9 @@ export default class User extends Component {
                 {/* <a>Pause</a>
                 <a>Stop</a> */}
                 <Dropdown overlay={menu(user)}>
-                  <a>
+                  <span>
                     修改 <Icon type="down" />
-                  </a>
+                  </span>
                 </Dropdown>
               </span>
               <Divider type="vertical" />
@@ -282,24 +102,44 @@ export default class User extends Component {
     ];
     this.tagCol = [
       {
+        width:'20%',
         title: "标签编号",
-        dataIndex: "tId"
-        // key: "tId"
+        dataIndex: "tId",
+        sorter: (a, b) => a.tId > b.tId
       },
       {
-        title: "描述",
-        dataIndex: "description"
-        // key: "description"
+        width:'20%',
+        title: '描述',
+        dataIndex: 'description',
+        onCell: () => {
+          return {
+            style: {
+              maxWidth: 150,
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow:'ellipsis',
+              cursor:'pointer'
+            }
+          }
+        },
+        render: (text) => <Tooltip placement="topLeft" title={text}>{text}</Tooltip>
       },
       {
-        title: "创建时间",
-        dataIndex: "createdTime"
-        // key: "createdTime"
+        width:'20%',
+        title: '创建时间',
+        dataIndex: 'createTime',
+        sorter: (a, b) => a.createTime > b.createTime,
       },
       {
+        width:'20%',
+        title: '最近修改时间',
+        dataIndex: 'updateTime',
+        sorter: (a, b) => a.updateTime > b.updateTime
+      },
+      {
+        width:'20%',
         title: "状态",
         dataIndex: "status",
-        // key: "status",
         render: (status) => {
           // const show = status ? "正常" : "异常"
           return (
@@ -310,25 +150,6 @@ export default class User extends Component {
           );
         }
       }
-      // {
-      //   width: 200,
-      //   title: "操作",
-      //   render: (tag) => {
-      //     return (
-      //       <span>
-      //         <LinkButton onClick={() => this.showUpdate(tag)}>修改</LinkButton>
-      //         <Popconfirm
-      //           title="确定删除此计划?"
-      //           onConfirm={() => this.deleteTag(tag._id)}
-      //           okText="是"
-      //           cancelText="否"
-      //         >
-      //           <LinkButton>删除</LinkButton>
-      //         </Popconfirm>
-      //       </span>
-      //     );
-      //   }
-      // }
     ];
   };
 
@@ -336,17 +157,19 @@ export default class User extends Component {
     this.setState({loading: true}) // 显示loading
     const result = await reqUsers();
     this.setState({loading: false}) // 隐藏loading
-    console.log(result);
+
     if (result.code === 200) {
       // 取出分页数据, 更新状态, 显示分页列表
       let data = [...result.users];
-      data.map((item, index) => {
+      data.forEach((item, index) => {
         item.tags = (
           <Table
+            rowKey='_id'
             className="components-table-demo-nested"
             columns={this.tagCol}
             dataSource={result.users[index].tags}
             pagination={false}
+            size='middle'
           />
         );
       });
@@ -395,7 +218,7 @@ export default class User extends Component {
         // 收集数据, 并提交添加分类的请求
         const { username, password } = values;
         const result = await reqAddUser(username, password);
-        console.log(result);
+
         if (result.code === 200) {
           // 清除输入数据
           this.form.resetFields();
@@ -421,7 +244,6 @@ export default class User extends Component {
         // 准备数据
         const id = this.user._id
         const {username, password} = values
-        console.log(username, password)
         let result;
         if (username) {
           result = await reqUpdateUserName(id, username)
@@ -456,6 +278,15 @@ export default class User extends Component {
     }
   };
 
+  /* 展开控制 */
+  onExpand = (expanded, record) => {
+    let expandedRowKeys = [];
+    if (expanded) {
+      expandedRowKeys.push(record._id)
+    }
+    this.setState({ expandedRowKeys });
+  }
+
   componentWillMount() {
     this.initColumns();
   }
@@ -465,7 +296,19 @@ export default class User extends Component {
   }
 
   render() {
-    const { data, showStatus, loading } = this.state;
+    const { data, showStatus, loading, expandedRowKeys } = this.state;
+
+    // const title = (
+    //   <span>
+    //     <Radio.Group
+    //       onChange={(e) => this.setState({ userLevel: e.target.value })}
+    //       value={this.state.userLevel}
+    //     >
+    //       <Radio value={1}>普通用户</Radio>
+    //       <Radio value={2}>管理员</Radio>
+    //     </Radio.Group>
+    //   </span>
+    // );
 
     const extra = (
       <Button type='primary' onClick={() => this.showAdd()}>
@@ -475,15 +318,18 @@ export default class User extends Component {
     )
 
     return (
-      <Card  extra={extra}>
+      <Card extra={extra}>
         <Table
-          bordered
+          // bordered
           rowKey='_id'
           loading={loading}
           className="components-table-demo-nested"
           columns={this.userCol}
-          expandedRowRender={(record) => <p>{record.tags}</p>}
+          expandedRowRender={(record) => <span>{record.tags}</span>}
           dataSource={data}
+          expandedRowKeys={expandedRowKeys}
+          onExpand={this.onExpand}
+          // scroll={{ y: 400 }}
         />
         <Modal
             title="添加用户"

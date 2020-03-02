@@ -2,12 +2,12 @@ import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {
   Form,
-  Select,
+  // Select,
   Input
 } from 'antd'
 
 const Item = Form.Item
-const Option = Select.Option
+// const Option = Select.Option
 
 /*
 添加分类的form组件
