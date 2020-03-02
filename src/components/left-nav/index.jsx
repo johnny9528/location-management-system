@@ -3,7 +3,7 @@ import {Link, withRouter} from 'react-router-dom'
 import {Menu, Icon} from 'antd';
 
 // import logo from '../../assets/images/logo.png'
-import logo from '../../assets/images/icc_logo.jpg'
+// import logo from '../../assets/images/icc_logo.jpg'
 import menuList from '../../config/menuConfig'
 import './index.less'
 // import memoryUtils from "../../utils/memoryUtils";
@@ -175,10 +175,10 @@ class LeftNav extends Component {
 
     return (
       <div className="left-nav">
-        <Link to='/' className="left-nav-header">
+        {/* <Link to='/' className="left-nav-header">
           <img src={logo} alt="logo"/>
           <h1>定位管理系统</h1>
-        </Link>
+        </Link> */}
 
         <Menu
           mode="inline"

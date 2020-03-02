@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
-import {withRouter} from 'react-router-dom'
-import { Modal} from 'antd'
+import {withRouter, Link} from 'react-router-dom'
+import { Modal } from 'antd'
 
 import LinkButton from '../link-button'
 import {reqWeather} from '../../api'
@@ -9,6 +9,7 @@ import {formateDate} from '../../utils/dateUtils'
 import memoryUtils from '../../utils/memoryUtils'
 import storageUtils from '../../utils/storageUtils'
 import './index.less'
+import logo from '../../assets/images/icc_logo.jpg'
 
 /*
 左侧导航的组件
@@ -110,19 +111,25 @@ class Header extends Component {
     // const title = this.getTitle()
     return (
       <div className="header">
-        <div className="header-top">
+        <div className="header-left">
+          <Link to='/' className="left-nav-header">
+            <img src={logo} alt="logo"/>
+            <h1>定位管理系统</h1>
+          </Link>
+        </div>
+        <div className="header-right">
           <span>欢迎, {username}</span>
           <LinkButton onClick={this.logout}>退出</LinkButton>
         </div>
-        <div className="header-bottom">
+        {/* <div className="header-bottom"> */}
           {/* <div className="header-bottom-left">{title}</div> */}
-          <div className="header-bottom-left"></div>
+          {/* <div className="header-bottom-left"></div>
           <div className="header-bottom-right">
             <span>{currentTime}</span>
             <img src={dayPictureUrl} alt="weather"/>
             <span>{weather}</span>
-          </div>
-        </div>
+          </div> */}
+        {/* </div> */}
       </div>
     )
   }

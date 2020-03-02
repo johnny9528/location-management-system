@@ -64,7 +64,7 @@ class Login extends Component {
               token: result.token
             }
             memoryUtils.user = user // 保存在内存中
-            memoryUtils.login_type = 'login_user'
+            memoryUtils.login_type = 'admin_user'
             storageUtils.saveUser(user) // 保存到local中
 
             // 跳转到管理界面 (不需要再回退回到登陆)
