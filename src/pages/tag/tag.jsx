@@ -256,7 +256,7 @@ export default class Tag extends Component {
   }
 
   refresh () {
-    this.setState({ searchKey: ''}, () => {
+    this.setState({ searchKey: '', searchType: 'searchTId'}, () => {
       this.getTags()
     });
 

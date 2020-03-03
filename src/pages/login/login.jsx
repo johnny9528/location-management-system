@@ -64,7 +64,7 @@ class Login extends Component {
               token: result.token
             }
             memoryUtils.user = user // 保存在内存中
-            memoryUtils.login_type = 'login_user'
+            memoryUtils.login_type = 'login_admin'
             storageUtils.saveUser(user) // 保存到local中
 
             // 跳转到管理界面 (不需要再回退回到登陆)
@@ -107,9 +107,10 @@ class Login extends Component {
             message.success('用户注册成功')
 
             // 保存user
-            // const user = result.data
-            const user = username
-            // const token = result.token
+            const user = {
+              username: result.username,
+              token: result.token
+            }
             memoryUtils.user = user // 保存在内存中
             memoryUtils.login_type = 'login_user'
             storageUtils.saveUser(user) // 保存到local中

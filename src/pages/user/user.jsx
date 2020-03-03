@@ -72,8 +72,8 @@ export default class User extends Component {
       {
         width:'20%',
         title: "Action",
-        dataIndex: 'operation',
         render: (user) => {
+          console.log(user);
           return (
             <span>
               {/* <LinkButton onClick={() => this.showUpdate(user)}>修改</LinkButton> */}
