@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
-import {withRouter} from 'react-router-dom'
-import { Modal} from 'antd'
+import {withRouter, Link} from 'react-router-dom'
+import { Modal, Icon, Dropdown, Menu, Avatar } from 'antd'
 
 import LinkButton from '../link-button'
 import {reqWeather} from '../../api'
@@ -9,9 +9,15 @@ import {formateDate} from '../../utils/dateUtils'
 import memoryUtils from '../../utils/memoryUtils'
 import storageUtils from '../../utils/storageUtils'
 import './index.less'
+import logo from '../../assets/images/logo.png'
+
+import defaultAva from '../../assets/images/default.png'
+
+// const SubMenu = Menu.SubMenu;
+const MenuItemGroup = Menu.ItemGroup;
 
 /*
-左侧导航的组件
+header的组件
  */
 class Header extends Component {
 
@@ -75,6 +81,7 @@ class Header extends Component {
     })
   }
 
+
   /*
   第一次render()之后执行一次
   一般在此执行异步操作: 发ajax请求/启动定时器
@@ -104,27 +111,48 @@ class Header extends Component {
 
     const {currentTime, dayPictureUrl, weather} = this.state
 
-    const username = memoryUtils.user.username
+    // const {username, level} = memoryUtils.user
+    const {username, level} = storageUtils.getUser()
+    // console.log("username",username,level);
 
-    // 得到当前需要显示的title
-    // const title = this.getTitle()
+    const menu = (
+      <Menu selectable={false}>
+          <MenuItemGroup title="用户中心">
+            {/* <Menu.Item key={1} onClick={() => this.toggleInfoVisible(true)}><Icon type="user" />编辑个人信息</Menu.Item> */}
+           { level ==="user" ? (<Menu.Item key={77} onClick={() => this.togglePasswordVisible(true)}><Icon type="edit" />修改密码</Menu.Item>) : null }
+            <Menu.Item key={2} onClick={this.logout}><Icon type="logout" />退出登录</Menu.Item>
+          </MenuItemGroup>
+          {/* <MenuItemGroup title="设置中心"> */}
+            {/* <Menu.Item key={3} onClick={this.toggleFullscreen}><Icon type={isFullscreen ? 'fullscreen-exit' : 'fullscreen'} />切换全屏</Menu.Item> */}
+            {/* <Menu.Item key={4} onClick={this.resetColor}><Icon type="ant-design" />恢复默认主题</Menu.Item> */}
+          {/* </MenuItemGroup> */}
+      </Menu>
+    );
+
     return (
       <div className="header">
-        <div className="header-top">
-          <span>欢迎, {username}</span>
-          <LinkButton onClick={this.logout}>退出</LinkButton>
+        <div className="header-left">
+          <Link to="/" className="left-nav-header">
+            <img src={logo} alt="logo" />
+            <h1>定位管理系统</h1>
+          </Link>
         </div>
-        <div className="header-bottom">
-          {/* <div className="header-bottom-left">{title}</div> */}
-          <div className="header-bottom-left"></div>
-          <div className="header-bottom-right">
-            <span>{currentTime}</span>
-            <img src={dayPictureUrl} alt="weather"/>
-            <span>{weather}</span>
-          </div>
+        <div className="header-middle">
+          <span>{currentTime}</span>
+          <img src={dayPictureUrl} alt="weather" />
+          <span>{weather}</span>
+        </div>
+        <div className="header-right">
+          <Dropdown overlay={menu} placement="bottomCenter">
+            <LinkButton>
+              <Avatar size='small' src={defaultAva}></Avatar>
+              &nbsp;
+              <span>{username}</span>
+            </LinkButton>
+          </Dropdown>
         </div>
       </div>
-    )
+    );
   }
 }
 

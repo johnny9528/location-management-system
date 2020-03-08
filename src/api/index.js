@@ -127,7 +127,16 @@ export const reqAdminLogin = (username, password) => ajax(BASE + '/admin/login',
 export const reqUserLogin = (username, password) => ajax(BASE + '/login', {username, password}, 'POST')
 
 //用户注册
-export const reqUserRegister = (username, password) => ajax(BASE + '/register', {username, password}, 'POST')
+export const reqUserRegister = (username, email, password) => ajax(BASE + '/register', {username, email, password}, 'POST')
+
+//检查密码是否存在
+export const reqCheckName = (username) => ajax(BASE + '/account/checkName', {username})
+
+//用户找回密码
+export const reqUserGetBackPassword = (username, email, password) => ajax(BASE + '/account/getBackPassword', {username, email, password}, 'POST')
+
+// 用户修改密码
+export const reqUserUpdatePassword = (username, oldPassword, newPassword) => ajax(BASE + '/account/updatePassword', {username, oldPassword, newPassword}, 'POST')
 
 //admin获得tag
 export const reqTags = () => ajax(BASE + '/admin/tag')

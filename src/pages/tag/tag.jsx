@@ -309,7 +309,7 @@ export default class Tag extends Component {
     return (
       <Card title={title} extra={extra}>
         <Table
-          bordered
+          // bordered
           rowKey='_id'
           loading={loading}
           dataSource={tags}
@@ -322,6 +322,7 @@ export default class Tag extends Component {
           //   onChange: this.getProducts
           }}
           onChange={onChange}
+          size={"middle"}
         />
 
       <Modal
