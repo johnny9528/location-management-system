@@ -2,7 +2,8 @@ import React, { Component } from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
 import { Layout } from "antd";
 
-import memoryUtils from "../../utils/memoryUtils";
+// import memoryUtils from "../../utils/memoryUtils";
+import storageUtils from '../../utils/storageUtils'
 import LeftNav from "../../components/left-nav";
 import Header from "../../components/header";
 // import Home from '../home/home'
@@ -29,30 +30,29 @@ const { Footer, Sider, Content } = Layout;
  */
 export default class Admin extends Component {
   render() {
-    // const user = memoryUtils.user
-    // 如果内存没有存储user ==> 当前没有登陆
-    // if(!user || !user._id) {
-    //   // 自动跳转到登陆(在render()中)
-    //   return <Redirect to='/login'/>
-    // }
-    const login_type = memoryUtils.login_type;
-    console.log("the login type in / is ....." + login_type);
+    const user = storageUtils.getUser()
+    if(!user) {
+      return <Redirect to='/login'/>
+    }
+    // const login_type = memoryUtils.login_type;
+    // console.log("the login type in / is ....." + login_type);
     return (
       <Layout style={{ minHeight: "100%" }}>
         <Header>Header</Header>
 
         <Layout>
-          {login_type === "login_admin" ? (
+          {user.level === "admin" ? (
             <Sider
               style={{
-                height: "100vh"
+                // height: "100vh-80px",
+                backgroundColor: "#fff"
               }}
             >
               <LeftNav />
             </Sider>
           ) : null}
           <Layout>
-            <Content style={{ height: "75vh", margin: 20, backgroundColor: "#fff" }}>
+            <Content style={{ height: "70%", margin: 20, backgroundColor: "#fff" }}>
               <Switch>
                 <Redirect from="/" exact to="/home" />
 

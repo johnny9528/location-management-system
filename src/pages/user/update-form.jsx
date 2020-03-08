@@ -49,6 +49,7 @@ class UpdateForm extends Component {
               <Input
               prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />}
               placeholder="请输入新用户名"
+              allowClear
             />
             )
           }
@@ -69,6 +70,7 @@ class UpdateForm extends Component {
                 prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />}
                 type="password"
                 placeholder="请输入新密码"
+                allowClear
               />
             )
           }

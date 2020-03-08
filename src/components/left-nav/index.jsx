@@ -5,7 +5,7 @@ import {Menu, Icon} from 'antd';
 // import logo from '../../assets/images/logo.png'
 // import logo from '../../assets/images/icc_logo.jpg'
 import menuList from '../../config/menuConfig'
-import './index.less'
+// import './index.less'
 // import memoryUtils from "../../utils/memoryUtils";
 
 const SubMenu = Menu.SubMenu;
@@ -182,15 +182,13 @@ class LeftNav extends Component {
 
         <Menu
           mode="inline"
-          theme="dark"
+          theme="light"
           selectedKeys={[path]}
           defaultOpenKeys={[openKey]}
         >
-
           {
             this.menuNodes
           }
-
         </Menu>
       </div>
     )

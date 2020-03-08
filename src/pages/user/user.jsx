@@ -50,29 +50,33 @@ export default class User extends Component {
     );
     this.userCol = [
       {
-        width:'20%',
+        width:'16%',
         title: "用户名",
         dataIndex: "username",
       },
       {
-        width:'20%',
+        width:'16%',
+        title: "邮箱",
+        dataIndex: "email",
+      },
+      {
+        width:'16%',
         title: "上次登录时间",
         dataIndex: "lastLoginTime",
       },
       {
-        width:'20%',
+        width:'16%',
         title: '创建时间',
         dataIndex: 'createTime',
       },
       {
-        width:'20%',
+        width:'16%',
         title: '最近修改时间',
         dataIndex: 'updateTime',
       },
       {
-        width:'20%',
+        width:'16%',
         title: "Action",
-        dataIndex: 'operation',
         render: (user) => {
           return (
             <span>
@@ -329,7 +333,7 @@ export default class User extends Component {
           dataSource={data}
           expandedRowKeys={expandedRowKeys}
           onExpand={this.onExpand}
-          // scroll={{ y: 400 }}
+          // scroll={{ y: 300 }}
         />
         <Modal
             title="添加用户"

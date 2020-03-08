@@ -39,7 +39,7 @@ class AddForm extends Component {
                 {required: true, message: '编号必须输入'}
               ]
             })(
-                <Input placeholder='请输入编号'/>
+                <Input placeholder='请输入编号' allowClear/>
             )
           }
         </Item>
@@ -51,7 +51,7 @@ class AddForm extends Component {
                 {required: true, message: '用户名必须输入'}
               ]
             })(
-              <Input placeholder='请输入所属用户'/>
+              <Input placeholder='请输入所属用户' allowClear/>
             )
           }
         </Item>
@@ -60,7 +60,7 @@ class AddForm extends Component {
             getFieldDecorator('description', {
               initialValue: '',
             })(
-              <Input placeholder='请输入描述'/>
+              <Input placeholder='请输入描述' allowClear/>
             )
           }
         </Item>

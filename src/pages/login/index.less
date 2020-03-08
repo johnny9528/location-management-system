@@ -1,0 +1,219 @@
+.background {
+  width: 100%;
+  height: 100%;
+  background-size: 100% 100%;
+  background-image: url('../../assets/images/bg.jpg');
+
+  .login-header {
+    display: flex;
+    align-items: center;
+    // text-align: center;
+    height: 80px;
+    // width: 200px;
+    line-height: 80px;
+    position: relative;
+    background-color: rgba(21, 20, 13, 0.5);
+
+    img {
+      margin: 0 15px;
+      width: 40px;
+      height: 40px;
+    }
+
+    h1 {
+      color: white;
+      font-size: 20px;
+      margin-bottom: 0;
+    }
+  }
+
+  .login {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 320px;
+    padding: 100px 40px 40px;
+    box-sizing: content-box;
+
+    .box {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transition: all 1s;
+      backface-visibility: hidden;
+      color: #d3d7f7;
+      padding: 40px 40px 0px;
+      box-shadow: -15px 15px 15px rgba(0, 0, 0, .4);
+      text-align: center;
+      transform: rotateY(180deg);
+
+      &:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        // background: linear-gradient(230deg, rgba(53, 57, 74, 0), #000);
+        background: linear-gradient(240deg, rgba(53, 57, 74, 0), #000);
+        opacity: .8;
+        z-index: -1;
+      }
+
+      .title {
+        height: 60px;
+        color: #d3d7f7;
+        font-size: 16px;
+        margin-bottom: 0;
+        font-weight: 100;
+      }
+
+      .ant-icon {
+        color: #fff;
+        opacity: .6;
+      }
+
+      // .myInput
+      .ant-input {
+        // background-color: transparent;
+        background-color: rgba(100, 160, 179, 0.5);
+        color: rgb(255, 255, 255);
+        // outline: none;
+        border: none;
+        // opacity: .8;
+        box-shadow: none;
+        padding-right: 0;
+      }
+
+
+      // .btn-box {
+        //   display: flex;
+        //   // height: 35px;
+        //   justify-content: space-between;
+        //   align-items: center;
+
+        //   .registerBtn {
+          //     &:hover {
+      //       color: #5ccbff;
+      //       background: white;
+      //     }
+
+      //     cursor: pointer;
+      //     color: #D3D7F7;
+      //     padding: 10px 50px;
+      //     // border: 2px solid #4FA1D9;
+      //     border-radius: 50px;
+      //     background: transparent;
+      //     font-size: 14px;
+      //     transition: all .2s;
+      //     height: 100%;
+      //     line-height: 1.2;
+      //   }
+
+      //   .loginBtn {
+        //     &:hover {
+      //       color: white;
+      //       background: #5ccbff;
+
+      //     }
+
+      //     cursor: pointer;
+      //     padding: 10px 50px;
+      //     border: 2px solid #5ccbff;
+      //     border-radius: 50px;
+      //     background: transparent;
+      //     font-size: 14px;
+      //     color: #5ccbff;
+      //     transition: all .2s;
+      //     height: 100%;
+      //     line-height: 0.8;
+      //   }
+      // }
+
+
+      &.active {
+        transform: rotateY(0deg);
+      }
+
+      .title {
+        height: 60px;
+        color: #d3d7f7;
+        font-size: 18px;
+        margin-bottom: 0;
+        font-weight: 500;
+      }
+
+      .iconfont {
+        color: #fff;
+        opacity: .6;
+      }
+
+      .canvas {
+        align-items: center;
+      }
+
+      .login-button {
+        &:hover {
+          color: white;
+          background: #4FA1D9;
+        }
+
+        cursor: pointer;
+        padding: 10px 50px;
+        border: 2px solid #4FA1D9;
+        border-radius: 5px;
+        background: transparent;
+        font-size: 14px;
+        color: #4FA1D9;
+        transition: all .2s;
+        height: 100%;
+        line-height: 0.8;
+      }
+
+      .after-button {
+        text-align: right;
+      }
+      // .footer {
+      //     position: absolute;
+      //     bottom: 20px;
+      //     left: 35px;
+      //     width: 250px;
+      //     color: #d3d7f7;
+      //     font-size: 10px;
+      //     font-weight: 600;
+      // }
+
+      //覆盖antd样式，注意只覆盖此页面antd的样式，而其他页面的antd不会被覆盖
+      // .ant-col {
+      //     right: 0%; //过渡要有初始值，否则无效
+      //     transition: all .3s;
+      // }
+
+      // .ant-col-pull-1 {
+      //     right: 4.16666667%; //为什么这里又写一遍？因为上面的优先级会覆盖antd，所以这里在写一遍提高优先级
+      // }
+
+      // .ant-form-explain {
+      //     position: absolute;
+      //     z-index: 99;
+      //     left: 110%;
+      //     top: 0;
+      //     height: 41px;
+      // }
+
+      /*更改谷歌浏览器input背景*/
+      input:-webkit-autofill,
+      input:-webkit-autofill:hover,
+      input:-webkit-autofill:focus,
+      input:-webkit-autofill:active {
+          /*延迟背景颜色载入*/
+          -webkit-transition-delay: 99999s;
+          -webkit-transition: color 99999s ease-out, background-color 99999s ease-out;
+      }
+    }
+  }
+}
