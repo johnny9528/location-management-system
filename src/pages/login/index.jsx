@@ -29,7 +29,7 @@ class Login extends Component {
 
     // 如果用户已经登陆, 自动跳转到管理界面
     const user = storageUtils.getUser()
-    if(user) {
+    if(Object.keys(user).length !== 0) {
       return <Redirect to='/'/>
     }
 
