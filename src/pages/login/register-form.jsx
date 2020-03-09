@@ -29,12 +29,12 @@ class RegisterForm extends Component {
       if (!err) {
         // console.log('提交登陆的ajax请求', values)
         // 请求登陆
-        const { username, email, password } = values;
-        console.log(username, email, password);
+        const { LoginUsername, LoginEmail, LoginPassword } = values;
+        console.log(LoginUsername, LoginEmail, LoginPassword);
 
         // radio = 1, 管理员登陆
         if (show === "register") {
-          const result = await reqUserRegister(username, email, password);
+          const result = await reqUserRegister(LoginUsername, LoginEmail, LoginPassword);
           console.log("user注册请求成功", result);
           if (result.code === 200) {
             // 登陆成功
@@ -44,7 +44,7 @@ class RegisterForm extends Component {
             this.toggle("login");
             // // 保存user
             // // const user = result.data
-            // const user = username
+            // const user = LoginUsername
             // // const token = result.token
             // memoryUtils.user = user // 保存在内存中
             // memoryUtils.login_type = 'login_user'
@@ -58,7 +58,7 @@ class RegisterForm extends Component {
             message.error("注册失败");
           }
         } else if (show === "getBackPassword") {
-          const result = await reqUserGetBackPassword(username, email, password);
+          const result = await reqUserGetBackPassword(LoginUsername, LoginEmail, LoginPassword);
           console.log("user找回密码", result);
           if (result.code === 200) {
             message.success("密码成功找回");
@@ -80,12 +80,11 @@ class RegisterForm extends Component {
   }
 
   checkName = debounce(async (value) => {
-    console.log("check", value);
     if (value) {
       const res = await reqCheckName(value);
       if (res.isExisted) {
         this.props.form.setFields({
-          username: {
+          LoginUsername: {
             value,
             errors: [new Error("用户名已存在")]
           }
@@ -107,7 +106,7 @@ class RegisterForm extends Component {
           hideRequiredMark
         >
           <Form.Item>
-            {getFieldDecorator("username", {
+            {getFieldDecorator("LoginUsername", {
               validateFirst: true,
               rules: [
                 { required: true, message: "用户名必须输入" },
@@ -130,14 +129,13 @@ class RegisterForm extends Component {
                 }
                 placeholder="用户名"
                 size={focusItem === 0 ? "large" : "default"}
-                onChange={(e) => {
-                  return this.checkName(e.target.value)}}
+                onChange={(e) => show ==="register" ? this.checkName(e.target.value) : null}
                 allowClear
               />
             )}
           </Form.Item>
           <Form.Item>
-            {getFieldDecorator("email", {
+            {getFieldDecorator("LoginEmail", {
               validateFirst: true,
                 rules: [
                   { required: true, message: "邮箱必须输入" },
@@ -163,7 +161,7 @@ class RegisterForm extends Component {
               )}
           </Form.Item>
           <Form.Item>
-            {getFieldDecorator("password", {
+            {getFieldDecorator("LoginPassword", {
               validateFirst: true,
               rules: [
                 { required: true, whitespace: true, message: "密码必须输入" },
@@ -198,7 +196,7 @@ class RegisterForm extends Component {
                 { required: true, message: '请确认密码' },
                 {
                     validator: (rule, value, callback) => {
-                        if (value && value !== getFieldValue('password')) {
+                        if (value && value !== getFieldValue('LoginPassword')) {
                             callback('两次输入不一致！')
                         }
                         callback()
