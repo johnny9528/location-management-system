@@ -154,13 +154,13 @@ export default class Home extends Component {
 
 
 
-        {/* <div>
-          <svg width="300" height="180" onD
+        <div>
+          {/* <svg width="300" height="180" onD
           // mycircle.setAttribute('r', 25);
           >
             <circle cx="90" cy="50" r={this.state.circle_r} class="red" onDragStart={() => console.log("tuozhaui kaishi")} onDragEnd
               ={() => console.log("jieshu tuozhuai")} />
-          </svg>
+          </svg> */}
           <div >
             <p draggable="true" onDragStart={() => console.log("tuozhaui kaishi")} onDragEnd
               ={() => console.log("jieshu tuozhuai")}>一段文字</p>
@@ -186,7 +186,7 @@ export default class Home extends Component {
               }}></img>
           </div>
         </div>
-        <div>
+        {/* <div>
           <svg viewBox="0 0 50 50" width="50" height="50" onClick={()=>alert("click")} draggable="true" onDragStart={()=>console.log("start")} onDragEnd={()=>alert("end")}>
             <image xlinkHref={map_svg}
                width="100%" height="100%" onClick={()=>alert("click")} draggable="true" onDragStart={()=>console.log("start")} onDragEnd={()=>alert("end")}/>
