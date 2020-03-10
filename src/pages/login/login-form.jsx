@@ -260,7 +260,7 @@ class LoginForm extends Component {
                   <canvas
                     onClick={this.changeCaptcha}
                     width="80"
-                    height="30"
+                    height="40"
                     ref={(el) => {
                       this.canvas = el;
                     }}
@@ -269,7 +269,7 @@ class LoginForm extends Component {
                   <canvas
                     onClick={this.changeCaptcha}
                     width="80"
-                    height="30"
+                    height="40"
                     ref={(el) => {
                       this.canvas = el;
                     }}

@@ -1,4 +1,5 @@
 import React, {Component} from 'react'
+import { Redirect} from "react-router-dom";
 import {
   Card,
   Select,
@@ -17,6 +18,7 @@ import {
 import LinkButton from '../../components/link-button'
 import {reqTags, reqAddTag, reqUpdateTag, reqDeleteTag, reqSearchTags} from '../../api'
 import {PAGE_SIZE} from '../../utils/constants'
+import storageUtils from '../../utils/storageUtils'
 
 import AddForm from './add-form'
 import UpdateForm from './update-form'
@@ -140,7 +142,6 @@ export default class Tag extends Component {
       result = await reqTags();
     }
 		// const result = await reqTags();
-		console.log(result);
     this.setState({loading: false}) // 隐藏loading
     if (result.code === 200) {
       // 取出分页数据, 更新状态, 显示分页列表
@@ -192,7 +193,6 @@ export default class Tag extends Component {
         // 收集数据, 并提交添加分类的请求
         const {tId, username, description} = values
 				const result = await reqAddTag(tId, username, description)
-				console.log(result)
         if(result.code===200) {
           // 清除输入数据
           this.form.resetFields()
@@ -246,7 +246,6 @@ export default class Tag extends Component {
   */
   deleteTag = async (id) => {
     const result = await reqDeleteTag(id)
-    console.log(id)
     if (result.code===200) {
       this.getTags()
     }
@@ -271,9 +270,16 @@ export default class Tag extends Component {
   }
 
   render() {
-    function onChange(pagination, filters, sorter, extra) {
-      console.log('params', pagination, filters, sorter, extra);
+
+    const user = storageUtils.getUser()
+    if(user.level !== "admin") {
+      message.warn("无权访问")
+      return <Redirect to='/login'/>
     }
+
+    // function onChange(pagination, filters, sorter, extra) {
+    //   console.log('params', pagination, filters, sorter, extra);
+    // }
 
     // 取出状态数据
     const {tags, loading, showStatus, searchType, searchKey} = this.state
@@ -321,7 +327,7 @@ export default class Tag extends Component {
             showQuickJumper: true,
           //   onChange: this.getProducts
           }}
-          onChange={onChange}
+          // onChange={onChange}
           size={"middle"}
         />
 

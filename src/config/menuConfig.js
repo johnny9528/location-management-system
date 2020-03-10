@@ -1,16 +1,16 @@
 const menuList = [
   {
-    title: 'anchor管理', // 菜单标题名称
+    title: '首页', // 菜单标题名称
     key: '/home', // 对应的path
     icon: 'home', // 图标名称
     isPublic: true, // 公开的
   },
 
-  // {
-  //   title:'anchor管理',
-  //   key:'/anchor',
-  //   icon:'bars',
-  // },
+  {
+    title:'anchor管理',
+    key:'/anchor',
+    icon:'bars',
+  },
   {
     title:'tag管理',
     key:'/tag',

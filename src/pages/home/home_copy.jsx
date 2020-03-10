@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { Redirect} from "react-router-dom";
 // import pic_map from '../../assets/images/map.png'
 import './home.less'
 import {
@@ -46,6 +47,12 @@ export default class Home extends Component {
   }
 
   render() {
+    // const user = storageUtils.getUser()
+    // console.log("user"+user);
+    // if(Object.keys(user).length !== 0) {
+    //   return <Redirect to='/login'/>
+    // }
+
     const seletedIndex = this.state.selectedIndex;
     const dataForShow = this.state.dataForShow;
     const locationList = this.state.locationList;
@@ -84,7 +91,7 @@ export default class Home extends Component {
                       style={{ width: 200 }}
                     />
                     </Form.Item>
-                    
+
                     <Item label="aId">
                       <Input
                         value={seletedIndex === -1 ? '' : dataForShow[seletedIndex][0]}
@@ -137,7 +144,7 @@ export default class Home extends Component {
                         提交修改信息
                       </Button>
                     </Form.Item>
-                    
+
                   </Form>
                 </Col>
               </Row>

@@ -1,9 +1,10 @@
 import React, { Component } from "react";
+import { Redirect} from "react-router-dom";
 import { Table, Badge, message, Menu, Button, Modal, Card, Icon, Popconfirm, Dropdown, Divider, Tooltip } from "antd";
 // import {formateDate} from "../../utils/dateUtils"
 import LinkButton from "../../components/link-button/index";
 import { reqUsers, reqAddUser, reqUpdateUserName, reqUpdateUserPassword, reqDeleteUser } from "../../api/index";
-
+import storageUtils from '../../utils/storageUtils'
 import AddForm from './add-form'
 import UpdateForm from './update-form'
 // const expandedRowRender = record => <p>{record.desc}</p>;
@@ -36,7 +37,7 @@ export default class User extends Component {
             用户名
           </LinkButton>
         </Menu.Item>
-        <Menu.Item>
+        {/* <Menu.Item>
           <LinkButton
             onClick={() => {
               user.option = false; //选择修改密码
@@ -45,7 +46,7 @@ export default class User extends Component {
           >
             密码
           </LinkButton>
-        </Menu.Item>
+        </Menu.Item> */}
       </Menu>
     );
     this.userCol = [
@@ -301,6 +302,12 @@ export default class User extends Component {
   }
 
   render() {
+    const user = storageUtils.getUser()
+    if(user.level !== "admin") {
+      message.warn("无权访问")
+      return <Redirect to='/login'/>
+    }
+
     const { data, showStatus, loading, expandedRowKeys } = this.state;
 
     // const title = (

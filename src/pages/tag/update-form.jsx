@@ -25,7 +25,7 @@ class UpdateForm extends Component {
   render() {
 
     const { tag } = this.props
-    console.log(tag)
+    // console.log(tag)
     const { getFieldDecorator } = this.props.form
 
     const formItemLayout = {
