@@ -148,6 +148,8 @@ export default class Tag extends Component {
       this.setState({
         tags: result.tag
       })
+    } else {
+      message.error("获取数据失败");
     }
   }
 

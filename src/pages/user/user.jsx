@@ -180,6 +180,8 @@ export default class User extends Component {
         );
       });
       this.setState({ data });
+    } else {
+      message.error("获取数据失败");
     }
   };
 

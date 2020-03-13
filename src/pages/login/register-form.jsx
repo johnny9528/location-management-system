@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
-import { Form, Icon, Input, message } from 'antd'
+import { Form, Icon, Input, message, Button } from 'antd'
 import LinkButton from '../../components/link-button'
 // import memoryUtils from '../../utils/memoryUtils'
 // import storageUtils from '../../utils/storageUtils'
@@ -10,6 +10,7 @@ import debounce from '../../utils/debounce'
 class RegisterForm extends Component {
   state = {
     focusItem: -1,
+    loading: false, //登录button加载状态
   };
 
   toggle = (option) => {
@@ -27,44 +28,36 @@ class RegisterForm extends Component {
     this.props.form.validateFields(async (err, values) => {
       // 检验成功
       if (!err) {
+        this.setState({loading: true});
+
         // console.log('提交登陆的ajax请求', values)
         // 请求登陆
         const { LoginUsername, LoginEmail, LoginPassword } = values;
         console.log(LoginUsername, LoginEmail, LoginPassword);
 
-        // radio = 1, 管理员登陆
+        //登录
         if (show === "register") {
           const result = await reqUserRegister(LoginUsername, LoginEmail, LoginPassword);
           console.log("user注册请求成功", result);
           if (result.code === 200) {
-            // 登陆成功
-            // 提示登陆成功
             message.success("用户注册成功");
-
+            this.setState({loading: false});
             this.toggle("login");
-            // // 保存user
-            // // const user = result.data
-            // const user = LoginUsername
-            // // const token = result.token
-            // memoryUtils.user = user // 保存在内存中
-            // memoryUtils.login_type = 'login_user'
-            // storageUtils.saveUser(user) // 保存到local中
-
-            // // 跳转到管理界面 (不需要再回退回到登陆)
-            // this.props.history.replace('/')
-          } else if (result.code === 11000 ) {
-            message.error("用户名已存在");
           } else {
-            message.error("注册失败");
+            message.error("注册失败: "+ result.message);
+            this.setState({loading: false});
           }
+        //找回密码
         } else if (show === "getBackPassword") {
           const result = await reqUserGetBackPassword(LoginUsername, LoginEmail, LoginPassword);
           console.log("user找回密码", result);
           if (result.code === 200) {
             message.success("密码成功找回");
+            this.setState({loading: false});
             this.toggle("login");
           } else {
-            message.error(result.message);
+            message.error("找回密码失败: "+ result.message);
+            this.setState({loading: false});
           }
         }
       } else {
@@ -94,7 +87,7 @@ class RegisterForm extends Component {
   });
 
   render() {
-    const { focusItem } = this.state
+    const { focusItem, loading } = this.state
     const form = this.props.form
     const { getFieldDecorator, getFieldValue } = form;
     const show = this.props.show;
@@ -226,9 +219,15 @@ class RegisterForm extends Component {
           <Form.Item
             style={{ marginTop: 10 }}
           >
-            <div className="login-button" onClick={this.handleSubmit}>
+            {/* <div className="login-button" onClick={this.handleSubmit}>
               {show === "register" ? "注册" : "确认"}
-            </div>
+            </div> */}
+            <Button
+              onClick={this.handleSubmit}
+              loading={loading}
+            >
+              {show === "register" ? "注册" : "确认"}
+            </Button>
             <div className="after-button">
               <LinkButton onClick={() => this.toggle('login')}>返回登录</LinkButton>
             </div>

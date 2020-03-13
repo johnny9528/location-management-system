@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
-import { Form, Icon, Input, Radio, Row, Col, message } from 'antd'
+import { Form, Icon, Input, Radio, Row, Col, message, Button } from 'antd'
 import LinkButton from '../../components/link-button'
 import memoryUtils from '../../utils/memoryUtils'
 import storageUtils from '../../utils/storageUtils'
@@ -15,7 +15,8 @@ class LoginForm extends Component {
   state = {
     radio: "user", //用户、管理员登录
     code: "", //验证码
-    focusItem: -1
+    focusItem: -1, // Input聚焦项
+    loading: false, //登录button加载状态
   };
 
   toggle = (option) => {
@@ -32,14 +33,18 @@ class LoginForm extends Component {
   };
 
   handleSubmit = (event) => {
+
     this._createCode();
     // 阻止事件的默认行为
     event.preventDefault();
+    //登录按钮设置为loading
 
     // 对所有表单字段进行检验
     this.props.form.validateFields(async (err, values) => {
       // 检验成功
       if (!err) {
+        this.setState({loading: true});
+
         // console.log('提交登陆的ajax请求', values)
         // 请求登陆
         const { username, password } = values;
@@ -70,6 +75,8 @@ class LoginForm extends Component {
             // 提示错误信息
             console.log("管理员登陆失败,用户名或者密码错误");
             message.error("用户名或者密码错误");
+            this.changeCaptcha();
+            this.setState({loading: false});
           }
         } else if (this.state.radio === "user") {
           // 用户登陆
@@ -96,6 +103,8 @@ class LoginForm extends Component {
             // 提示错误信息
             console.log("用户登陆失败,用户名或者密码错误");
             message.error("用户名或者密码错误");
+            this.changeCaptcha();
+            this.setState({loading: false});
           }
         }
       } else {
@@ -143,6 +152,7 @@ class LoginForm extends Component {
   };
   /* 点击改变验证码 */
   changeCaptcha = () => {
+    console.log("captcha");
     this.props.form.resetFields(["captcha"]);
     this._createCode();
   };
@@ -152,10 +162,11 @@ class LoginForm extends Component {
   }
 
   render() {
-    const { code, focusItem, radio } = this.state;
+    const { code, focusItem, radio, loading } = this.state;
     const form = this.props.form;
     const { getFieldDecorator } = form;
     const show = this.props.show;
+    console.log("render code: "+code);
 
     return (
       <div>
@@ -228,6 +239,7 @@ class LoginForm extends Component {
                     { required: true, whitespace: true, message: "验证码必须输入" },
                     {
                       validator: (rule, value, callback) => {
+                        console.log("validate code: "+code);
                         if (code.toUpperCase() !== value.toUpperCase()) {
                           callback("验证码错误");
                         }
@@ -286,9 +298,15 @@ class LoginForm extends Component {
             </Radio.Group>
           </Form.Item>
           <Form.Item>
-            <div className="login-button" onClick={this.handleSubmit}>
-              登录
-            </div>
+            {/* <div className="login-button" onClick={this.handleSubmit}>
+              {loading? "登录" : "登录中"}
+            </div> */}
+            <Button
+              onClick={this.handleSubmit}
+              loading={loading}
+            >
+              {loading? "登录中" : "登录"}
+            </Button>
             <div className="after-button">
               <LinkButton onClick={() => this.toggle("getBackPassword")}>忘记密码</LinkButton>
               <LinkButton onClick={() => this.toggle("register")}>注册</LinkButton>
