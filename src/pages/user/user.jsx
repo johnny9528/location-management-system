@@ -3,7 +3,7 @@ import { Redirect} from "react-router-dom";
 import { Table, Badge, message, Menu, Button, Modal, Card, Icon, Popconfirm, Dropdown, Divider, Tooltip } from "antd";
 // import {formateDate} from "../../utils/dateUtils"
 import LinkButton from "../../components/link-button/index";
-import { reqUsers, reqAddUser, reqUpdateUserName, reqUpdateUserPassword, reqDeleteUser } from "../../api/index";
+import { reqUsers, reqAddUser, reqUpdateUser, reqDeleteUser } from "../../api/index";
 import storageUtils from '../../utils/storageUtils'
 import AddForm from './add-form'
 import UpdateForm from './update-form'
@@ -20,35 +20,37 @@ export default class User extends Component {
     isShow: false, // 是否显示确认框
     showStatus: 0,
     loading: false,
-    expandedRowKeys: [] //装展开行的key
+    expandedRowKeys: [], //装展开行的key
+    confirmAddLoading: false,
+    confirmUpdateLoading: false,
   };
 
   initColumns = () => {
     //修改下拉选项
-    const menu = (user) => (
-      <Menu>
-        <Menu.Item>
-          <LinkButton
-            onClick={() => {
-              user.option = true; //选择修改用户名
-              this.showUpdate(user);
-            }}
-          >
-            用户名
-          </LinkButton>
-        </Menu.Item>
-        {/* <Menu.Item>
-          <LinkButton
-            onClick={() => {
-              user.option = false; //选择修改密码
-              this.showUpdate(user);
-            }}
-          >
-            密码
-          </LinkButton>
-        </Menu.Item> */}
-      </Menu>
-    );
+    // const menu = (user) => (
+    //   <Menu>
+    //     <Menu.Item>
+    //       <LinkButton
+    //         onClick={() => {
+    //           user.option = true; //选择修改用户名
+    //           this.showUpdate(user);
+    //         }}
+    //       >
+    //         用户名
+    //       </LinkButton>
+    //     </Menu.Item>
+    //     <Menu.Item>
+    //       <LinkButton
+    //         onClick={() => {
+    //           user.option = false; //选择修改密码
+    //           this.showUpdate(user);
+    //         }}
+    //       >
+    //         密码
+    //       </LinkButton>
+    //     </Menu.Item>
+    //   </Menu>
+    // );
     this.userCol = [
       {
         width:'16%',
@@ -79,19 +81,16 @@ export default class User extends Component {
         width:'16%',
         title: "Action",
         render: (user) => {
-          console.log(user);
           return (
             <span>
-              {/* <LinkButton onClick={() => this.showUpdate(user)}>修改</LinkButton> */}
-              <span className="table-operation">
-                {/* <a>Pause</a>
-                <a>Stop</a> */}
+              <LinkButton onClick={() => this.showUpdate(user)}>修改</LinkButton>
+              {/* <span className="table-operation">
                 <Dropdown overlay={menu(user)}>
                   <LinkButton>
                     修改 <Icon type="down" />
                   </LinkButton>
                 </Dropdown>
-              </span>
+              </span> */}
               <Divider type="vertical" />
               <Popconfirm
                 title="是否删除此用户所有数据?"
@@ -218,14 +217,15 @@ export default class User extends Component {
     });
   };
   /*
-  添加tag
+  添加user
   */
   addUser = () => {
     this.form.validateFields(async (err, values) => {
       if (!err) {
+        this.setState({confirmAddLoading: true})
         // 收集数据, 并提交添加分类的请求
-        const { username, password } = values;
-        const result = await reqAddUser(username, password);
+        const { username, email, password } = values;
+        const result = await reqAddUser(username, email, password);
 
         if (result.code === 200) {
           // 清除输入数据
@@ -234,30 +234,27 @@ export default class User extends Component {
           this.setState({
             showStatus: 0
           });
+          message.success("添加成功");
           this.getUsers();
         } else {
           message.error(result.message);
         }
+        this.setState({confirmAddLoading: false})
       }
     });
   };
   /*
-  更新tag
+  更新user
    */
   updateUser = () => {
     // 进行表单验证, 只有通过了才处理
     this.form.validateFields(async (err, values) => {
       if(!err) {
-
+        this.setState({confirmUpdateLoading: true})
         // 准备数据
         const id = this.user._id
-        const {username, password} = values
-        let result;
-        if (username) {
-          result = await reqUpdateUserName(id, username)
-        } else (
-          result= await reqUpdateUserPassword(id, password)
-        )
+        const {username, email} = values
+        let result = await reqUpdateUser(id, username, email)
 
         if (result.code === 200) {
           // 隐藏确定框
@@ -266,12 +263,14 @@ export default class User extends Component {
           })
           // 清除输入数据
           this.form.resetFields()
+          message.success("修改成功");
           // 重新显示列表
           this.getUsers()
         }
         else if (result.code === 11000) {
-          message.error('编号重复')
+          message.error('用户名重复')
         }
+        this.setState({confirmUpdateLoading: false})
       }
     })
   }
@@ -279,6 +278,7 @@ export default class User extends Component {
   deleteUser = async (id) => {
     const result = await reqDeleteUser(id)
     if (result.code===200) {
+      message.success("删除成功");
       this.getUsers()
     }
     else {
@@ -310,7 +310,7 @@ export default class User extends Component {
       return <Redirect to='/login'/>
     }
 
-    const { data, showStatus, loading, expandedRowKeys } = this.state;
+    const { data, showStatus, loading, expandedRowKeys, confirmAddLoading, confirmUpdateLoading } = this.state;
 
     // const title = (
     //   <span>
@@ -350,6 +350,7 @@ export default class User extends Component {
             visible={showStatus===1}
             onOk={this.addUser}
             onCancel={this.handleCancel}
+            confirmLoading={confirmAddLoading}
           >
             <AddForm
               setForm={(form) => {this.form = form}}
@@ -361,6 +362,7 @@ export default class User extends Component {
             visible={showStatus===2}
             onOk={this.updateUser}
             onCancel={this.handleCancel}
+            confirmLoading={confirmUpdateLoading}
           >
             <UpdateForm
               user = {this.user}

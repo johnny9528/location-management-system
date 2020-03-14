@@ -35,6 +35,7 @@ class AddForm extends Component {
         <Item label='用户名'>
           {
             getFieldDecorator('username', {
+              validateFirst: true,
               initialValue: '',
               rules: [
                 { required: true, whitespace: true, message: '用户名必须输入' },
@@ -51,9 +52,28 @@ class AddForm extends Component {
             )
           }
         </Item>
+        <Item label='邮箱'>
+          {
+            getFieldDecorator("email", {
+              validateFirst: true,
+              initialValue: '',
+              rules: [
+                { required: true, message: "邮箱必须输入" },
+                { pattern: /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/, message: '邮箱格式不正确' },
+              ]
+            })(
+              <Input
+                prefix={<Icon type="mail" style={{ color: 'rgba(0,0,0,.25)' }} />}
+                placeholder="请输入邮箱"
+                allowClear
+              />
+            )
+          }
+        </Item>
         <Item label='密码'>
           {
             getFieldDecorator('password', {
+              validateFirst: true,
               initialValue: '',
               rules: [
                 { required: true, whitespace: true, message: '密码必须输入' },

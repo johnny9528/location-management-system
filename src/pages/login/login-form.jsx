@@ -111,12 +111,6 @@ class LoginForm extends Component {
         console.log("检验失败!");
       }
     });
-
-    // 得到form对象
-    // const form = this.props.form
-    // // 获取表单项的输入数据
-    // const values = form.getFieldsValue()
-    // console.log('handleSubmit()', values)
   };
 
   /* 生成验证码 */
@@ -166,7 +160,6 @@ class LoginForm extends Component {
     const form = this.props.form;
     const { getFieldDecorator } = form;
     const show = this.props.show;
-    console.log("render code: "+code);
 
     return (
       <div>
@@ -298,9 +291,6 @@ class LoginForm extends Component {
             </Radio.Group>
           </Form.Item>
           <Form.Item>
-            {/* <div className="login-button" onClick={this.handleSubmit}>
-              {loading? "登录" : "登录中"}
-            </div> */}
             <Button
               onClick={this.handleSubmit}
               loading={loading}

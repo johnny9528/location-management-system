@@ -13,7 +13,6 @@ import axios from 'axios'
 import {message} from 'antd'
 import storageUtils from '../../src/utils/storageUtils'
 const {token} = storageUtils.getUser()
-console.log(token);
 const headers = { token };
 
 export default function ajax(url, data={}, type='GET') {
@@ -31,7 +30,7 @@ export default function ajax(url, data={}, type='GET') {
     } else if(type==='PUT'){ // 发PUT请求 put(url[, data[, config]])
       promise = axios.put(url, data, {headers})
     } else if(type==='DELETE'){ // 发DELETE请求 axios#delete(url[, config])
-      promise = axios.delete(url, {data}, {headers})
+      promise = axios.delete(url, {data, headers})
     }
     // 2. 如果成功了, 调用resolve(value)
     promise.then(response => {
@@ -39,7 +38,9 @@ export default function ajax(url, data={}, type='GET') {
     // 3. 如果失败了, 不调用reject(reason), 而是提示异常信息
     }).catch(error => {
       // reject(error)
-      message.error('请求出错了: ' + error.message)
+      message.error("请求失败: " + error.response.data.message)
+      resolve(error.response.data)
+      // message.error('请求出错了: ' + error.message)
     })
   })
 

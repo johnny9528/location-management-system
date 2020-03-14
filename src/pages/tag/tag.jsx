@@ -40,6 +40,8 @@ export default class Tag extends Component {
     showStatus: 0,
     searchText: '',
     searchedColumn: '',
+    confirmAddLoading: false,
+    confirmUpdateLoading: false,
   }
 
   /*
@@ -191,6 +193,7 @@ export default class Tag extends Component {
   addTag = () => {
     this.form.validateFields(async (err, values) => {
       if (!err) {
+        this.setState({confirmAddLoading: true})
 
         // 收集数据, 并提交添加分类的请求
         const {tId, username, description} = values
@@ -199,14 +202,14 @@ export default class Tag extends Component {
           // 清除输入数据
           this.form.resetFields()
           // 隐藏确认框
-          this.setState({
-            showStatus: 0
-          })
+          this.setState({showStatus: 0})
+          message.success("添加成功");
           this.getTags()
 				}
 				else {
 					message.error(result.message)
-				}
+        }
+        this.setState({confirmAddLoading: false})
       }
     })
   }
@@ -218,6 +221,7 @@ export default class Tag extends Component {
     // 进行表单验证, 只有通过了才处理
     this.form.validateFields(async (err, values) => {
       if(!err) {
+        this.setState({confirmUpdateLoading: true})
 
         // 准备数据
         const id = this.tag._id
@@ -234,11 +238,13 @@ export default class Tag extends Component {
           // 清除输入数据
           this.form.resetFields()
           // 重新显示列表
+          message.success("修改成功");
           this.getTags()
         }
         else if (result.code === 11000) {
-          message.error('编号重复')
+          message.error('tId已存在')
         }
+        this.setState({confirmUpdateLoading: false})
       }
     })
   }
@@ -249,6 +255,7 @@ export default class Tag extends Component {
   deleteTag = async (id) => {
     const result = await reqDeleteTag(id)
     if (result.code===200) {
+      message.success("删除成功");
       this.getTags()
     }
     else {
@@ -284,7 +291,7 @@ export default class Tag extends Component {
     // }
 
     // 取出状态数据
-    const {tags, loading, showStatus, searchType, searchKey} = this.state
+    const {tags, loading, showStatus, searchType, searchKey, confirmAddLoading, confirmUpdateLoading} = this.state
 
     const title = (
       <div>
@@ -338,6 +345,7 @@ export default class Tag extends Component {
         visible={showStatus===1}
         onOk={this.addTag}
         onCancel={this.handleCancel}
+        confirmLoading={confirmAddLoading}
       >
         <AddForm
           setForm={(form) => {this.form = form}}
@@ -349,12 +357,15 @@ export default class Tag extends Component {
         visible={showStatus===2}
         onOk={this.updateTag}
         onCancel={this.handleCancel}
+        confirmLoading={confirmUpdateLoading}
       >
         <UpdateForm
           tag = {this.tag}
           setForm={(form) => {this.form = form}}
         />
       </Modal>
+
+
       </Card>
     )
   }

@@ -195,7 +195,7 @@ class RegisterForm extends Component {
                         callback()
                     }
                 },
-            ]
+              ]
             })(
               <Input
                 onFocus={() => this.setState({ focusItem: 3 })}

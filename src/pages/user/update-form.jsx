@@ -35,9 +35,10 @@ class UpdateForm extends Component {
 
     return (
       <Form {...formItemLayout}>
-        { !user.option ? null : (<Item label='用户名'>
+        <Item label='用户名'>
           {
             getFieldDecorator('username', {
+              validateFirst: true,
               initialValue: user.username,
               rules: [
                 { required: true, whitespace: true, message: '用户名必须输入' },
@@ -53,28 +54,23 @@ class UpdateForm extends Component {
             />
             )
           }
-        </Item>)
-        }
-        { user.option ? null : (<Item label='密码'>
-          {
-            getFieldDecorator('password', {
-              initialValue: '',
+        </Item>
+        <Item label='邮箱'>
+          {getFieldDecorator("email", {
+            validateFirst: true,
+            initialValue: user.email,
               rules: [
-                { required: true, whitespace: true, message: '密码必须输入' },
-                { min: 4, message: '密码至少4位' },
-                { max: 12, message: '密码最多12位' },
-                { pattern: /^[a-zA-Z0-9_]+$/, message: '密码必须是英文、数字或下划线组成' },
+                { required: true, message: "邮箱必须输入" },
+                { pattern: /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/, message: '邮箱格式不正确' },
               ]
             })(
               <Input
-                prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />}
-                type="password"
-                placeholder="请输入新密码"
+                prefix={<Icon type="mail" style={{ color: 'rgba(0,0,0,.25)' }} />}
+                placeholder="请输入邮箱"
                 allowClear
               />
-            )
-          }
-        </Item>)}
+            )}
+        </Item>
       </Form>
     )
   }

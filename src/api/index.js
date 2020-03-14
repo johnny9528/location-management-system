@@ -92,13 +92,13 @@ export const reqDeleteTag = (id) => ajax(BASE + '/admin/tag', {id}, 'DELETE')
 export const reqUsers = () => ajax(BASE + '/admin/user')
 
 //admin添加user
-export const reqAddUser = (username, password) => ajax(BASE + '/admin/user', {username, password}, 'POST')
+export const reqAddUser = (username, email, password) => ajax(BASE + '/admin/user', {username, email, password}, 'POST')
 
-//admin更新user用户名
-export const reqUpdateUserName = (id, username) => ajax(BASE + '/admin/user', {id, username}, 'PUT')
+//admin更新user用户
+export const reqUpdateUser = (id, username, email) => ajax(BASE + '/admin/user', {id, username, email}, 'PUT')
 
 //admin更新user密码
-export const reqUpdateUserPassword = (id, password) => ajax(BASE + '/admin/user', {id, password}, 'PUT')
+// export const reqUpdateUserPassword = (id, password) => ajax(BASE + '/admin/user', {id, password}, 'PUT')
 
 //admin删除user
 export const reqDeleteUser = (id) => ajax(BASE + '/admin/user', {id}, 'DELETE')

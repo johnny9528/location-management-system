@@ -47,17 +47,8 @@ class UpdateForm extends Component {
             )
           }
         </Item>
-        <Item label='用户名'>
-          {
-            getFieldDecorator('username', {
-              initialValue: tag.user.username,
-              rules: [
-                {required: true, message: '用户名必须输入'}
-              ]
-            })(
-              <Input placeholder='请输入所属用户' allowClear/>
-            )
-          }
+        <Item label='所属用户'>
+          <Input defaultValue={tag.user.username} disabled/>
         </Item>
         <Item label='描述'>
           {

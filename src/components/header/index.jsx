@@ -1,17 +1,18 @@
 import React, {Component} from 'react'
 import {withRouter, Link} from 'react-router-dom'
-import { Modal, Icon, Dropdown, Menu, Avatar } from 'antd'
+import { Modal, Icon, Dropdown, Menu, Avatar, message } from 'antd'
 
 import LinkButton from '../link-button'
-import {reqWeather} from '../../api'
+import { reqWeather, reqUserUpdatePassword } from '../../api'
 import menuList from '../../config/menuConfig'
 import {formateDate} from '../../utils/dateUtils'
 import memoryUtils from '../../utils/memoryUtils'
 import storageUtils from '../../utils/storageUtils'
+import UpdatePasswordForm from './update-password-form'
 import './index.less'
 import logo from '../../assets/images/logo.png'
-
 import defaultAva from '../../assets/images/default.png'
+
 
 // const SubMenu = Menu.SubMenu;
 const MenuItemGroup = Menu.ItemGroup;
@@ -25,6 +26,8 @@ class Header extends Component {
     currentTime: formateDate(Date.now()), // 当前时间字符串
     dayPictureUrl: '', // 天气图片url
     weather: '', // 天气的文本
+    passwordVisible: false, // 控制修改密码model显示
+    confirmPasswordLoading: false, // 修改面model loading控制
   }
 
   getTime = () => {
@@ -81,6 +84,41 @@ class Header extends Component {
     })
   }
 
+  handleCancel = () => {
+    // // 清除输入数据
+    this.form.resetFields();
+    // // 隐藏确认框
+    this.setState({
+      passwordVisible: false
+    });
+  };
+
+  updatePassword = () =>{
+    this.form.validateFields(async (err, values) => {
+      if(!err) {
+        this.setState({confirmPasswordLoading: true})
+        const {oldPassword, newPassword} = values
+        const { username } = storageUtils.getUser()
+        console.log(username, oldPassword, newPassword);
+        let result = await reqUserUpdatePassword(username, oldPassword, newPassword)
+
+        if (result.code === 200) {
+          // 隐藏确定框
+          this.setState({
+            passwordVisible: 0
+          })
+          // 清除输入数据
+          this.form.resetFields()
+          message.success("修改成功");
+        }
+        else {
+          message.error("修改失败" + result.message)
+        }
+        this.setState({confirmPasswordLoading: false})
+      }
+    })
+  }
+
 
   /*
   第一次render()之后执行一次
@@ -109,7 +147,7 @@ class Header extends Component {
 
   render() {
 
-    const {currentTime, dayPictureUrl, weather} = this.state
+    const {currentTime, dayPictureUrl, weather, passwordVisible, confirmPasswordLoading} = this.state
 
     // const {username, level} = memoryUtils.user
     const {username, level} = storageUtils.getUser()
@@ -119,7 +157,7 @@ class Header extends Component {
       <Menu selectable={false}>
           <MenuItemGroup title="用户中心">
             {/* <Menu.Item key={1} onClick={() => this.toggleInfoVisible(true)}><Icon type="user" />编辑个人信息</Menu.Item> */}
-           { level ==="user" ? (<Menu.Item key={77} onClick={() => this.togglePasswordVisible(true)}><Icon type="edit" />修改密码</Menu.Item>) : null }
+           { level ==="user" ? (<Menu.Item key={77} onClick={() => this.setState({passwordVisible: true})}><Icon type="edit" />修改密码</Menu.Item>) : null }
             <Menu.Item key={2} onClick={this.logout}><Icon type="logout" />退出登录</Menu.Item>
           </MenuItemGroup>
           {/* <MenuItemGroup title="设置中心"> */}
@@ -151,6 +189,18 @@ class Header extends Component {
             </LinkButton>
           </Dropdown>
         </div>
+        <Modal
+          title="修改密码"
+          visible={passwordVisible}
+          onOk={this.updatePassword}
+          onCancel={this.handleCancel}
+          confirmLoading={confirmPasswordLoading}
+        >
+          <UpdatePasswordForm
+            username={username}
+            setForm={(form) => {this.form = form}}
+          />
+        </Modal>
       </div>
     );
   }
