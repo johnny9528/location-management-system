@@ -18,6 +18,8 @@ import {
 // import memoryUtils from '../../utils/memoryUtils'
 // import map_svg from './map_pin.svg';
 // import memoryUtils from '../../utils/memoryUtils';
+import LinkButton from '../../components/link-button'
+
 import map from '../../assets/images/map.png'
 import anchor from '../../assets/images/anchor.png'
 
@@ -294,7 +296,6 @@ class Home extends Component {
     // 移动靠近anchor时 放大图标
     const highlightAnchor = (e) => {
       const { map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h } = this.state;
-      const { anchors } = this.state;
       x = e.clientX - this.canvas.offsetLeft;
       y = e.clientY - this.canvas.offsetTop;
       // console.log(x, y);
@@ -415,32 +416,47 @@ class Home extends Component {
     //缩放
     this.canvas.onmousewheel = (e) => {
       const { map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h } = this.state;
-        let map_origin_w = map_w; // 缩放前大小
-        let map_origin_h = map_h;
-        let map_origin_x = map_x;
-        let map_origin_y = map_y;
-
-        // let x = e.clientX;
-        // let y = e.clientY;
-        if (e.wheelDelta > 0) {
-          this.scaling += 0.1;
-        } else {
-          this.scaling -= 0.1;
-        }
-        // scaling += e.wheelDelta/1200;
-        console.log(this.scaling);
-        let map_w_after = MAP_W*this.scaling;
-        let map_h_after = MAP_H*this.scaling;
-        let anchor_x_after = anchor_x.map((item) => map_x - (map_x - item)*map_w_after/map_w);
-        let anchor_y_after = anchor_y.map((item) => map_y - (map_y - item)*map_h_after/map_h);
-        this.draw (map_x, map_y, map_w_after, map_h_after, anchor_x_after, anchor_y_after, anchor_w, anchor_h)
-        this.setState({
-          map_w: map_w_after,
-          map_h: map_h_after,
-          anchor_x: anchor_x_after,
-          anchor_y: anchor_y_after,
-        });
+      // let x = e.clientX;
+      // let y = e.clientY;
+      if (e.wheelDelta > 0) {
+        this.scaling += 0.1;
+      } else {
+        this.scaling -= 0.1;
+      }
+      // scaling += e.wheelDelta/1200;
+      console.log(this.scaling);
+      this.zoom (map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
+      // let map_w_after = MAP_W*this.scaling;
+      // let map_h_after = MAP_H*this.scaling;
+      // let anchor_x_after = anchor_x.map((item) => map_x - (map_x - item)*map_w_after/map_w);
+      // let anchor_y_after = anchor_y.map((item) => map_y - (map_y - item)*map_h_after/map_h);
+      // this.draw (map_x, map_y, map_w_after, map_h_after, anchor_x_after, anchor_y_after, anchor_w, anchor_h)
+      // this.setState({
+      //   map_w: map_w_after,
+      //   map_h: map_h_after,
+      //   anchor_x: anchor_x_after,
+      //   anchor_y: anchor_y_after,
+      // });
     };
+  }
+
+  // 缩放
+  zoom (map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h) {
+    let map_w_after = MAP_W*this.scaling;
+    let map_h_after = MAP_H*this.scaling;
+    let anchor_x_after = anchor_x.map((item) => map_x - (map_x - item)*map_w_after/map_w);
+    let anchor_y_after = anchor_y.map((item) => map_y - (map_y - item)*map_h_after/map_h);
+    this.draw (map_x, map_y, map_w_after, map_h_after, anchor_x_after, anchor_y_after, anchor_w, anchor_h)
+    this.setState({
+      map_x,
+      map_y,
+      map_w: map_w_after,
+      map_h: map_h_after,
+      anchor_x: anchor_x_after,
+      anchor_y: anchor_y_after,
+      anchor_w,
+      anchor_h,
+    });
   }
 
   // 画地图和所有anchor
@@ -484,7 +500,7 @@ class Home extends Component {
 
   render() {
     // console.log("render");
-    const { anchors, selectedIndex, dataForShow, locationList } = this.state;
+    const { anchors, selectedIndex } = this.state;
     const {map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h} = this.state;
     // console.log(selectedIndex);
     const { getFieldDecorator } = this.props.form;
@@ -492,19 +508,44 @@ class Home extends Component {
     return (
       <div>
         <div className='map'>
-          <canvas id="myCanvas" width="1200" height="600"></canvas>
+          <canvas id="myCanvas" width="1200" height="620"></canvas>
         </div>
         <div className="map-control">
-          {/* <span></span> */}
-          <Icon type="zoom-in" style={{ fontSize: '20px' }} />
-          {/* <span> </span> */}
-          <Icon type="zoom-out" style={{ fontSize: '20px' }}/>
-          <Icon type="redo" style={{ fontSize: '20px' }}/>
+          <LinkButton
+            onClick={() => {
+              this.scaling += 0.1;
+              this.zoom(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
+            }}
+          >
+            <Icon type="zoom-in" style={{ fontSize: '20px' }} />
+          </LinkButton>
+          <LinkButton
+            onClick={() => {
+              this.scaling -= 0.1;
+              this.zoom(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
+            }}
+          >
+            <Icon type="zoom-out" style={{ fontSize: '20px' }}/>
+          </LinkButton>
+          <LinkButton
+            onClick={() => {
+              // 还原比例
+              this.scaling = 1;
+              // 还原坐标为中心
+              let map_x_after = this.canvas.width/2;
+              let map_y_after = this.canvas.height/2;
+              let anchor_x_after = anchor_x.map((item) => item+ map_x_after - map_x);
+              let anchor_y_after = anchor_y.map((item) => item+ map_y_after - map_y);
+              this.zoom(map_x_after, map_y_after, map_w, map_h, anchor_x_after, anchor_y_after, anchor_w, anchor_h);
+            }}
+          >
+            <Icon type="redo" style={{ fontSize: '20px' }}/>
+          </LinkButton>
         </div>
         <div className='detail'>
           <Collapse
           bordered={false}
-          defaultActiveKey={['0']}
+          defaultActiveKey={['1']}
           // expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}
           className="site-collapse-custom-collapse"
           >
@@ -537,11 +578,14 @@ class Home extends Component {
                       <Input
                         // value={selectedIndex === -1 ? '' : anchors[selectedIndex].coords[0]}
                         onChange={(event) => {
-                          anchors[selectedIndex].coords[0] = parseFloat(event.target.value);
-                          anchor_x[selectedIndex] = map_x - map_w/2 + anchors[selectedIndex].coords[0]*ratio*this.scaling;
-                          this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
-                          this.setState({anchors});
+                          if (selectedIndex !== -1) {
+                            anchors[selectedIndex].coords[0] = parseFloat(event.target.value);
+                            anchor_x[selectedIndex] = map_x - map_w/2 + anchors[selectedIndex].coords[0]*ratio*this.scaling;
+                            this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
+                            this.setState({anchors});
+                          }
                         }}
+                        suffix="米（m）"
                       />
                     )}
                   </Item>
@@ -569,11 +613,14 @@ class Home extends Component {
                       // />
                       <Input
                         onChange={(event) => {
-                          anchors[selectedIndex].coords[1] = parseFloat(event.target.value);
-                          anchor_y[selectedIndex] = map_y + map_h/2 - anchors[selectedIndex].coords[1]*ratio*this.scaling;
-                          this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
-                          this.setState({anchors});
+                          if (selectedIndex !== -1) {
+                            anchors[selectedIndex].coords[1] = parseFloat(event.target.value);
+                            anchor_y[selectedIndex] = map_y + map_h/2 - anchors[selectedIndex].coords[1]*ratio*this.scaling;
+                            this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
+                            this.setState({anchors});
+                          }
                         }}
+                        suffix="米（m）"
                       />
                     )}
                   </Item>
