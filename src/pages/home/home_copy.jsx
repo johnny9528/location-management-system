@@ -47,11 +47,6 @@ export default class Home extends Component {
   }
 
   render() {
-    // const user = storageUtils.getUser()
-    // console.log("user"+user);
-    // if(Object.keys(user).length !== 0) {
-    //   return <Redirect to='/login'/>
-    // }
 
     const seletedIndex = this.state.selectedIndex;
     const dataForShow = this.state.dataForShow;

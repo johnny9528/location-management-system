@@ -21,6 +21,11 @@ const menuList = [
     key:'/user',
     icon:'user',
   },
+  {
+    title:'测试',
+    key:'/test',
+    icon:'test',
+  },
 
 
   // {
