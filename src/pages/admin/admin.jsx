@@ -12,7 +12,6 @@ import Anchor from "../anchor/anchor";
 import Tag from "../tag/tag";
 import User from "../user/user";
 import NotFound from "../not-found/not-found";
-import Test from "../test/test"
 // import Category from "../category/category";
 // import Product from "../product/product";
 // import Role from "../role/role";
@@ -61,7 +60,6 @@ export default class Admin extends Component {
                 <Route path="/anchor" component={Anchor} />
                 <Route path="/tag" component={Tag} />
                 <Route path="/user" component={User} />
-                <Route path="/test" component={Test} />
                 {/* <Route path="/category" component={Category} />
                 <Route path="/product" component={Product} />
                 <Route path="/role" component={Role} />

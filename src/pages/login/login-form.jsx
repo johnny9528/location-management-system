@@ -37,7 +37,6 @@ class LoginForm extends Component {
     this._createCode();
     // 阻止事件的默认行为
     event.preventDefault();
-    //登录按钮设置为loading
 
     // 对所有表单字段进行检验
     this.props.form.validateFields(async (err, values) => {

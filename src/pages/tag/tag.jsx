@@ -316,9 +316,9 @@ export default class Tag extends Component {
 
     const extra = (
       <Button type='primary' onClick={() => this.showAdd()}>
-      <Icon type='plus'/>
-      添加
-    </Button>
+        <Icon type='plus'/>
+        添加
+      </Button>
     )
 
     return (

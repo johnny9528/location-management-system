@@ -68,6 +68,17 @@ export const reqUserUpdatePassword = (username, oldPassword, newPassword) => aja
 
 /* anchor类api */
 
+//admin获得anchor
+export const reqAnchors = () => ajax(BASE + '/admin/anchor')
+
+//admin添加anchor
+export const reqAddAnchor = (aId, x, y, A, N) => ajax(BASE + '/admin/anchor', {aId, x, y, A, N}, 'POST')
+
+//admin修改anchor
+export const reqUpdateAnchor = (id, aId, x, y, A, N) => ajax(BASE + '/admin/anchor', {id, aId, x, y, A, N}, 'PUT')
+
+//admin修改anchor
+export const reqDeleteAnchor = (id) => ajax(BASE + '/admin/anchor', {id}, 'DELETE')
 
 /* tag类api */
 
