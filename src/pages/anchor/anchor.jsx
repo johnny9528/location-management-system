@@ -12,8 +12,10 @@ const REAL_WIDTH = 55;  //地图实际大小
 const REAL_HEIGH = 44;
 const MAP_W = 750; //网页地图大小
 const MAP_H = MAP_W/REAL_WIDTH*REAL_HEIGH;
-const ratio = MAP_W/REAL_WIDTH;
-const radis = 15; //触发事件的半径
+const RATIO = MAP_W/REAL_WIDTH; //真实地图与网页地图比值
+const ANCHOR_W = 30; //绘图anchor宽度
+const ANCHOR_H = 30; //绘图anchor高度
+const TRIGGER_RADIS = 15; //触发事件的半径
 
 const Item = Form.Item // 不能写在import之前
 const { Panel } = Collapse;
@@ -24,31 +26,53 @@ class Home extends Component {
     // this.canvas = React.createRef();
 
     this.state = {
-      anchors: [],
-      selectedIndex: -1,
-      //画图参数
-      map_x: 0, // 地图中心坐标
-      map_y: 0,
-      map_w: 0, // 地图大小
-      map_h: 0,
-      anchor_x: [], // anchor中心坐标
-      anchor_y: [],
-      anchor_w: [], // anchor大小
-      anchor_h: [],
+      anchors: {},
+      selectedId: '',
       scaling: 1, // 缩放比例
       updateLoading: false, //修改按钮loading状态
       deleteLoading: false, //修改按钮loading状态
+      canvasData: {}, // 储存画图所需数据
+      /*  示例
+      canvasData = {
+        "map":{
+          "x":600, //地图中心坐标x
+          "y":310, //地图中心坐标y
+          "w":750, //地图宽
+          "h":600  //地图高
+        },
+        "anchor":{
+          "10001-00437":{
+            "x":861.409090909091,   //anchor中心坐标x
+            "y":269.77272727272725, //anchor中心坐标y
+            "w":30,                 //anchor宽
+            "h":30                  //anchor高
+          },
+          "10001-00438":{
+            "x":304.0909090909091,
+            "y":451.8181818181818,
+            "w":30,
+            "h":30
+          }
+        }
+      }
+      */
+      showAdd: false,
+      showSearchResult: false,
     }
   }
 
   getAnchors = async () => {
-    const hide = message.loading('数据加载中...', 0)
+    const hide = message.loading('数据加载中', 0)
     console.dir(hide)
     let result = await reqAnchors();
     if (result.code === 200) {
-      this.setState({ anchors: result.anchors })
+      let anchors = {};
+      result.anchors.forEach((value) => {
+        anchors[value.id] = value;
+      })
+      this.setState({ anchors })
     } else {
-      message.error("获取数据失败");
+      message.error("获取数据失败" + result.message);
     }
     hide();
     message.success('数据加载完成');
@@ -57,17 +81,19 @@ class Home extends Component {
   updateAnchor = (id) => {
     this.props.form.validateFields(async (err, values) => {
       if(!err) {
-        this.setState({updateLoading: true})
+        this.setState({updateLoading: true});
         const {aId, x, y, A, N} = values
         const result = await reqUpdateAnchor(id, aId, x, y, A, N)
         if (result.code === 200) {
-          this.refreshCanvas('update');
+          this.setState({selectedId: id}, () => {
+            this.refreshCanvas('update');
+          });
           message.success("修改成功");
         }
         else {
           message.error("修改失败" + result.message)
         }
-        this.setState({updateLoading: false})
+        this.setState({updateLoading: false});
       }
     })
   }
@@ -76,7 +102,9 @@ class Home extends Component {
     this.setState({deleteLoading: true})
     const result = await reqDeleteAnchor(id)
     if (result.code===200) {
-      this.refreshCanvas('delete');
+      this.setState({selectedId: ''}, () => {
+        this.refreshCanvas('delete');
+      });
       this.props.form.resetFields();
       message.success("删除成功");
     }
@@ -91,92 +119,81 @@ class Home extends Component {
     // this.canvas = this.canvas.current;
     this.ctx = this.canvas.getContext("2d");
 
-    // 设置画图初始数据
-    let map_x = this.canvas.width/2;
-    let map_y = this.canvas.height/2;
-    let map_w = MAP_W;
-    let map_h = MAP_H;
-    let anchor_w = [];
-    let anchor_h = [];
-    let anchor_x = [];
-    let anchor_y = [];
-    this.state.anchors.forEach((item) => {
-      anchor_x.push(map_x - map_w/2 + item.coords[0]*ratio);
-      anchor_y.push(map_y - map_h/2+ map_h - item.coords[1]*ratio);
-      anchor_w.push(30);
-      anchor_h.push(30);
-    });
-    // console.log(anchor_x, anchor_y, anchor_w, anchor_h);
+    const { anchors } = this.state;
+    let canvasData = {};
+    canvasData.map = {
+      x: this.canvas.width/2,
+      y: this.canvas.height/2,
+      w: MAP_W,
+      h: MAP_H,
+    };
+    canvasData.anchor = {};
 
-    this.setState({ map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h }, () => {
-      // 画出地图和所有anchor
-      this.img = new Image();
-      this.img_anchor = new Image();
-      this.img.src = map;
-      this.img.onload = () => {
-        this.ctx.drawImage(
-          this.img,
-          this.state.map_x - this.state.map_w/2,
-          this.state.map_y - this.state.map_h/2,
-          this.state.map_w,
-          this.state.map_h,
-        );
-        // anchor在map画完之后再画
-        this.img_anchor.src = anchor;
-        this.img_anchor.onload= () => {
-          this.state.anchor_x.forEach((item, index) => {
-            // console.log(
-            //   this.state.anchor_x[index] - this.state.anchor_w[index]/2,
-            //   this.state.anchor_y[index] - this.state.anchor_h[index]/2,
-            //   this.state.anchor_h[index],
-            //   this.state.anchor_w[index]);
-            this.ctx.drawImage(
-              this.img_anchor,
-              this.state.anchor_x[index] - this.state.anchor_w[index]/2,
-              this.state.anchor_y[index] - this.state.anchor_h[index]/2,
-              this.state.anchor_h[index],
-              this.state.anchor_w[index],
-            );
-          });
-        }
+    Object.keys(anchors).forEach((id) => {
+      canvasData.anchor[id] = {
+        x: canvasData.map.x - canvasData.map.w/2 + anchors[id].coords[0]*RATIO,
+        y: canvasData.map.y + canvasData.map.h/2 - anchors[id].coords[1]*RATIO,
+        w: ANCHOR_W,
+        h: ANCHOR_H,
       };
     });
+
+    // 画出地图和所有anchor
+    this.img = new Image();
+    this.img_anchor = new Image();
+    this.img.src = map;
+    this.img.onload = () => {
+      this.ctx.drawImage(
+        this.img,
+        canvasData.map.x - canvasData.map.w/2,
+        canvasData.map.y - canvasData.map.h/2,
+        canvasData.map.w,
+        canvasData.map.h,
+      );
+      // anchor在map画完之后再画
+      this.img_anchor.src = anchor;
+      this.img_anchor.onload= () => {
+        Object.keys(canvasData.anchor).forEach((id) => {
+          this.ctx.drawImage(
+            this.img_anchor,
+            canvasData.anchor[id].x - canvasData.anchor[id].w/2,
+            canvasData.anchor[id].y - canvasData.anchor[id].h/2,
+            canvasData.anchor[id].h,
+            canvasData.anchor[id].w,
+          );
+        });
+      }
+    };
+    this.setState({ canvasData });
   }
 
   listenMouse () {
     let x, y; // 当前鼠标位置
     // this.scaling = 1; // 缩放比例
-    let clickedIndex = -1;
+    let clickedId = '';
     let lastClickTime = 0;
-    let lastClickX = 0;
-    let lastClickY = 0;
+    let lastClickLocation = { x: 0, y: 0 };
 
     // 移动靠近anchor时 放大图标
     const highlightAnchor = (e) => {
-      const { map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h } = this.state;
+      const { canvasData } = this.state;
       x = e.clientX - this.canvas.offsetLeft;
       y = e.clientY - this.canvas.offsetTop;
-      // console.log(x, y);
-      // console.log(window.innerWidth);
 
-      anchor_x.forEach((item, index) => {
+      Object.keys(canvasData.anchor).forEach((id) => {
         this.ctx.beginPath();
-        this.ctx.arc(anchor_x[index], anchor_y[index], radis, 0, Math.PI*2);
+        this.ctx.arc(canvasData.anchor[id].x, canvasData.anchor[id].y, TRIGGER_RADIS, 0, Math.PI*2);
         // 判断鼠标是否在范围内
-        if (index !== clickedIndex) {
+        if (id !== clickedId) {
           if (this.ctx.isPointInPath(x, y)) {
-            // this.setState({selectedIndex: index});
-            anchor_w[index] = 60;
-            anchor_h[index] = 60;
-            // console.log("anchor_w ",anchor_w);
-            this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
+            canvasData.anchor[id].w = 2 * ANCHOR_W;
+            canvasData.anchor[id].h = 2 * ANCHOR_H;
+            this.draw(canvasData);
 
-            // this.setState({anchor_w, anchor_h});
           } else {
-            anchor_w[index] = 30;
-            anchor_h[index] = 30;
-
-            this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
+            canvasData.anchor[id].w = ANCHOR_W;
+            canvasData.anchor[id].h = ANCHOR_H;
+            this.draw(canvasData);
           }
         }
       })
@@ -186,8 +203,7 @@ class Home extends Component {
 
     // 鼠标点击事件
     this.canvas.onmousedown =  (e) => {
-      const { map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h, scaling } = this.state;
-      const { anchors } = this.state;
+      const { canvasData, scaling, anchors, selectedId } = this.state;
       let isInAnchor = false;
 
       // 记录鼠标点击时坐标
@@ -195,58 +211,46 @@ class Home extends Component {
       let y_origin = e.clientY - this.canvas.offsetTop;
       // console.log("down",x, y);
 
-      anchor_x.forEach((item, index) => {
+      Object.keys(canvasData.anchor).forEach((id) => {
 
         this.ctx.beginPath();
-        this.ctx.arc(anchor_x[index], anchor_y[index], radis, 0, Math.PI*2);
+        this.ctx.arc(canvasData.anchor[id].x, canvasData.anchor[id].y, TRIGGER_RADIS, 0, Math.PI*2);
         // 判断鼠标是否在anchor范围内
         if (this.ctx.isPointInPath(x, y)) {
           // 点击anchor
           isInAnchor = true;
-          clickedIndex = index;
-          // 清空form，重新赋值
-          this.props.form.resetFields();
-          this.setState({selectedIndex: index});
+          clickedId = id;
 
           // 点击图标后放大，其他图标还原大小
-          let anchor_w_after = anchor_w.map((item, i) => i === index ? 60 : 30);
-          let anchor_h_after = anchor_h.map((item, i) => i === index ? 60 : 30);
-          this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w_after, anchor_h_after);
-          this.setState({
-            anchor_w: anchor_w_after,
-            anchor_h: anchor_h_after,
-          });
+          if (selectedId) {
+            canvasData.anchor[selectedId].w = ANCHOR_W;
+            canvasData.anchor[selectedId].h = ANCHOR_H;
+          }
+          canvasData.anchor[id].w = 2 * ANCHOR_W;
+          canvasData.anchor[id].h = 2 * ANCHOR_H;
 
-          // 记录anchor移动前真实坐标
-          let coord_x = anchors[index].coords[0];
-          let coord_y = anchors[index].coords[1];
+          this.draw(canvasData);
+          this.props.form.resetFields();
+          this.setState({ canvasData, selectedId: id });
+
+          // 记录移动前数据
+          // 对象深度拷贝，浅拷贝{...obj}
+          let anchors_before = JSON.parse(JSON.stringify(anchors));
+          let canvasData_before = JSON.parse(JSON.stringify(canvasData));
 
           // 移动anchor
           this.canvas.onmousemove = (e) => {
             x = e.clientX - this.canvas.offsetLeft;
             y = e.clientY - this.canvas.offsetTop;
-            // console.log(x, y);
-            let anchor_x_after = [...anchor_x];
-            let anchor_y_after = [...anchor_y];
-            anchor_x_after[index] = anchor_x[index] + x - x_origin;
-            anchor_y_after[index] = anchor_y[index] + y - y_origin;
-            // anchor_w[index] = 60;
-            // anchor_h[index] = 60;
-            this.draw(map_x, map_y, map_w, map_h, anchor_x_after, anchor_y_after, anchor_w_after, anchor_h_after);
-            // this.ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // this.ctx.drawImage(img, map_x, map_y, map_w, map_h);
-            // this.ctx.drawImage(img_anchor, anchor_x - anchor_w + x - x_origin, anchor_y - anchor_h + y -y_origin, anchor_w*2, anchor_h*2);
 
-            anchors[index].coords[0] = coord_x + (x -x_origin)/ratio/scaling;
-            anchors[index].coords[1] = coord_y - (y -y_origin)/ratio/scaling;
-            this.setState({
-              anchors,
-              anchor_x: anchor_x_after,
-              anchor_y: anchor_y_after,
-              anchor_w,
-              anchor_h,
-            })
-            // this.props.form.setFieldsValue({x: anchors[index].coords[0].toFixed(2), y: anchors[index].coords[1].toFixed(2)})
+            // 计算坐标偏移
+            anchors[id].coords[0] = anchors_before[id].coords[0] + (x -x_origin)/RATIO/scaling;
+            anchors[id].coords[1] = anchors_before[id].coords[1] - (y -y_origin)/RATIO/scaling;
+            canvasData.anchor[id].x = canvasData_before.anchor[id].x + x - x_origin;
+            canvasData.anchor[id].y = canvasData_before.anchor[id].y + y - y_origin;
+
+            this.draw(canvasData);
+            this.setState({ anchors, canvasData })
           }
         }
       })
@@ -254,58 +258,48 @@ class Home extends Component {
       if (!isInAnchor) {
         // 点击地图
         this.props.form.resetFields();
-        // this.setState({selectedIndex: -1});
 
         // 双击地图时所有anchor还原大小
         let clickTime = new Date().getTime();
-        // console.log(clickTime - lastClickTime);
-        let anchor_w_after = anchor_w;
-        let anchor_h_after = anchor_h;
+        console.log(clickTime - lastClickTime);
+
         // 判断两次点击时间差
-        // console.log(lastClickCoordinate, [x_origin, y_origin]);
-        if (clickTime - lastClickTime < 200 && lastClickX === x_origin && lastClickY === y_origin) {
-          console.log("double click");
-          // clickedIndex = -1;
-          anchor_w_after = anchor_w.map((item, i) => 30);
-          anchor_h_after = anchor_h.map((item, i) => 30);
-          this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w_after, anchor_h_after);
-          this.setState({
-            selectedIndex: -1,
-            anchor_w: anchor_w_after,
-            anchor_h: anchor_h_after,
+        if (clickTime - lastClickTime < 200
+          && lastClickLocation.x === x_origin
+          && lastClickLocation.y === y_origin) {
+
+          Object.keys(canvasData.anchor).forEach((id) => {
+            canvasData.anchor[id].w = ANCHOR_W;
+            canvasData.anchor[id].h = ANCHOR_H;
           });
+          this.draw(canvasData);
+          this.setState({ selectedId: '', canvasData });
         }
         // 记录上次点击时间和坐标
         lastClickTime = clickTime;
-        lastClickX = x_origin;
-        lastClickY = y_origin;
+        lastClickLocation.x = x_origin;
+        lastClickLocation.y = y_origin;
 
+        // 记录移动前地图坐标，anchor坐标
+        let canvasData_before = JSON.parse(JSON.stringify(canvasData));
+
+        // 移动地图
         this.canvas.onmousemove = (e) => {
-          console.log("move map");
           x = e.clientX - this.canvas.offsetLeft;
           y = e.clientY - this.canvas.offsetTop;
-          // console.log(x,y);
-          //限制移动不能超出画布
-          // (x<173)? ax=75 : ax=425;
-          // (y<148)? ay=50 : ay=350;
-          // (x < 425 && x >75)? x =e.clientX : x =ax;
-          // (y > 50 && y <350) ? y=e.clientY : y=ay;
 
-          let map_x_after = map_x + x -x_origin;
-          let map_y_after = map_y + y -y_origin;
-          let anchor_x_after = anchor_x.map((item) => item + x -x_origin);
-          let anchor_y_after = anchor_y.map((item) => item + y -y_origin);
+          canvasData.map.x = canvasData_before.map.x + x -x_origin;
+          canvasData.map.y = canvasData_before.map.y + y -y_origin;
+          Object.keys(canvasData.anchor).forEach((id) => {
+            canvasData.anchor[id].x = canvasData_before.anchor[id].x + x - x_origin;
+            canvasData.anchor[id].y = canvasData_before.anchor[id].y + y - y_origin;
+          });
 
-          this.draw(map_x_after, map_y_after, map_w, map_h, anchor_x_after, anchor_y_after, anchor_w_after, anchor_h_after);
-          this.setState({
-            map_x: map_x_after,
-            map_y: map_y_after,
-            anchor_x: anchor_x_after,
-            anchor_y: anchor_y_after,
-          })
+          this.draw(canvasData);
+          this.setState({ canvasData });
         }
       }
-
+      // 监听鼠标抬起事件
       this.canvas.onmouseup = (e) => {
         this.canvas.onmousemove = highlightAnchor;
         this.canvas.onmouseup = null;
@@ -314,10 +308,8 @@ class Home extends Component {
 
     //缩放
     this.canvas.onmousewheel = (e) => {
-      const { map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h, scaling } = this.state;
+      const { canvasData, scaling } = this.state;
       let scaling_after = scaling;
-      // let x = e.clientX;
-      // let y = e.clientY;
       if (e.wheelDelta > 0) {
         scaling_after += 0.1;
       } else {
@@ -327,74 +319,74 @@ class Home extends Component {
       if (scaling_after <0.5) {
         scaling_after = 0.5;
       }
-      this.zoom (map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h, scaling_after);
-      this.setState({scaling: scaling_after})
+      this.zoom(canvasData, scaling_after);
     };
   }
 
   // 缩放
-  zoom (map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h, scaling) {
-    let map_w_after = MAP_W*scaling;
-    let map_h_after = MAP_H*scaling;
-    let anchor_x_after = anchor_x.map((item) => map_x - (map_x - item)*map_w_after/map_w);
-    let anchor_y_after = anchor_y.map((item) => map_y - (map_y - item)*map_h_after/map_h);
-    this.draw (map_x, map_y, map_w_after, map_h_after, anchor_x_after, anchor_y_after, anchor_w, anchor_h)
-    this.setState({
-      map_x,
-      map_y,
-      map_w: map_w_after,
-      map_h: map_h_after,
-      anchor_x: anchor_x_after,
-      anchor_y: anchor_y_after,
-      anchor_w,
-      anchor_h,
+  zoom (canvasData, scaling) {
+    let canvasData_before = JSON.parse(JSON.stringify(canvasData));
+    canvasData.map.w = MAP_W*scaling;
+    canvasData.map.h = MAP_H*scaling;
+
+    Object.keys(canvasData.anchor).forEach((id) => {
+      canvasData.anchor[id].x = canvasData.map.x - (canvasData.map.x - canvasData.anchor[id].x)*canvasData.map.w/canvasData_before.map.w;
+      canvasData.anchor[id].y = canvasData.map.y - (canvasData.map.y - canvasData.anchor[id].y)*canvasData.map.h/canvasData_before.map.h;
     });
+    this.draw (canvasData);
+    this.setState({ canvasData, scaling });
   }
 
   // 画地图和所有anchor
-  draw (map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h) {
+  draw (canvasData) {
+    const { map, anchor } = canvasData;
     // 清空canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.drawImage(
       this.img,
-      map_x - map_w/2,
-      map_y - map_h/2,
-      map_w,
-      map_h,
+      map.x - map.w/2,
+      map.y - map.h/2,
+      map.w,
+      map.h,
     );
-    anchor_x.forEach((item, index) => {
+    Object.keys(anchor).forEach((id) => {
       this.ctx.drawImage(
         this.img_anchor,
-        anchor_x[index] - anchor_w[index]/2,
-        anchor_y[index] - anchor_h[index]/2,
-        anchor_h[index],
-        anchor_w[index],
+        anchor[id].x - anchor[id].w/2,
+        anchor[id].y - anchor[id].h/2,
+        anchor[id].h,
+        anchor[id].w,
       );
     });
   }
 
   refreshCanvas (type) {
     Promise.resolve(this.getAnchors()).then(() => {
-      const { anchors, map_x, map_y, map_w, map_h, anchor_w, anchor_h, scaling } = this.state;
-      console.log(anchors.length);
-      let anchor_x = [];
-      let anchor_y = [];
-      anchors.forEach((item) => {
-        anchor_x.push(map_x - map_w/2 + item.coords[0]*ratio*scaling);
-        anchor_y.push(map_y - map_h/2+ map_h - item.coords[1]*ratio*scaling);
+      const { anchors, canvasData, scaling, selectedId } = this.state;
+
+      // 添加修改删除等请求后重新给canvasData赋值
+      let canvasData_after = {};
+      canvasData_after.map = {
+        x: canvasData.map.x,
+        y: canvasData.map.y,
+        w: canvasData.map.w,
+        h: canvasData.map.h,
+      };
+      canvasData_after.anchor = {};
+      Object.keys(anchors).forEach((id) => {
+        canvasData_after.anchor[id] = {
+          x: canvasData_after.map.x - canvasData_after.map.w/2 + anchors[id].coords[0]*RATIO*scaling,
+          y: canvasData_after.map.y + canvasData_after.map.h/2 - anchors[id].coords[1]*RATIO*scaling,
+          w: ANCHOR_W,
+          h: ANCHOR_H,
+        };
       });
-      let anchor_w_after = [];
-      let anchor_h_after = [];
-      if (type === 'update') {
-        anchor_w_after = anchor_w;
-        anchor_h_after = anchor_h;
-      } else if (type === 'delete') {
-        anchor_w_after = new Array(anchors.length).fill(30);
-        anchor_h_after = new Array(anchors.length).fill(30);
+      if (selectedId) {
+        canvasData_after.anchor[selectedId].w = 2 * ANCHOR_W;
+        canvasData_after.anchor[selectedId].h = 2 * ANCHOR_H;
       }
-      // console.log(anchor_x, anchor_y);
-      this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w_after, anchor_h_after);
-      this.setState({map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w: anchor_w_after, anchor_h: anchor_h_after})
+      this.draw(canvasData_after);
+      this.setState({ canvasData: canvasData_after });
     })
   }
 
@@ -403,9 +395,6 @@ class Home extends Component {
       this.initCanvas();
       this.listenMouse();
     })
-    // this.getAnchors()
-    // this.initCanvas();
-    // this.listenMouse();
   }
 
 
@@ -417,8 +406,7 @@ class Home extends Component {
       return <Redirect to='/login'/>
     }
 
-    const { anchors, selectedIndex, updateLoading, deleteLoading } = this.state;
-    const {map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h, scaling} = this.state;
+    const { anchors, canvasData, scaling, selectedId, updateLoading, deleteLoading, showAdd } = this.state;
     let scaling_after = scaling;
 
     const { getFieldDecorator } = this.props.form;
@@ -437,8 +425,7 @@ class Home extends Component {
           <LinkButton
             onClick={() => {
               scaling_after += 0.1;
-              this.zoom(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h, scaling_after);
-              this.setState({scaling: scaling_after});
+              this.zoom(canvasData, scaling_after);
             }}
           >
             <Icon type="zoom-in" style={{ fontSize: '20px' }} />
@@ -449,8 +436,7 @@ class Home extends Component {
               if (scaling_after <0.5) {
                 scaling_after = 0.5;
               }
-              this.zoom(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h, scaling_after);
-              this.setState({scaling: scaling_after});
+              this.zoom(canvasData, scaling_after);
             }}
           >
             <Icon type="zoom-out" style={{ fontSize: '20px' }}/>
@@ -460,12 +446,15 @@ class Home extends Component {
               // 还原比例
               scaling_after = 1;
               // 还原坐标为中心
-              let map_x_after = this.canvas.width/2;
-              let map_y_after = this.canvas.height/2;
-              let anchor_x_after = anchor_x.map((item) => item+ map_x_after - map_x);
-              let anchor_y_after = anchor_y.map((item) => item+ map_y_after - map_y);
-              this.zoom(map_x_after, map_y_after, map_w, map_h, anchor_x_after, anchor_y_after, anchor_w, anchor_h, scaling_after);
-              this.setState({scaling: scaling_after});
+              let offset_x = this.canvas.width/2 - canvasData.map.x;
+              let offset_y = this.canvas.height/2 - canvasData.map.y;
+              canvasData.map.x = this.canvas.width/2;
+              canvasData.map.y = this.canvas.height/2;
+              Object.keys(canvasData.anchor).forEach((id) => {
+                canvasData.anchor[id].x = canvasData.anchor[id].x + offset_x;
+                canvasData.anchor[id].y = canvasData.anchor[id].y + offset_y;
+              });
+              this.zoom(canvasData, scaling_after);
             }}
           >
             <Icon type="redo" style={{ fontSize: '20px' }}/>
@@ -489,7 +478,12 @@ class Home extends Component {
                     onSearch={value => console.log(value)}
                     sytle={{width: '100'}}
                   />
-                  <Button type='primary' onClick={() => this.showAdd()}>
+                  <Button type='primary'
+                    onClick={() => {
+                      this.props.form.resetFields();
+                      this.setState({ showAdd: true});
+                    }}
+                  >
                     <Icon type='plus'/>
                   </Button>
                 </div>
@@ -497,26 +491,25 @@ class Home extends Component {
               key="1"
               className="site-collapse-custom-panel"
             >
-              {selectedIndex === -1 ? null : (
+              {(!selectedId && !showAdd) ? null : (
               <div className="anchor-form">
                 <Form hideRequiredMark>
                   <Item label="aId" {...layout}>
                     {getFieldDecorator('aId', {
-                      initialValue: selectedIndex === -1 ? '' : anchors[selectedIndex].aId,
+                      initialValue: !selectedId ? '' : anchors[selectedId].aId,
                       validateFirst: true,
                       rules: [
                         { required: true, message: 'aId不能为空' },
                       ]
                     })(
                       <Input
-                        disabled={selectedIndex=== -1 ? true : false}
-                        // value={selectedIndex=== -1 ? '' : anchors[selectedIndex].aId}
+                        disabled={!selectedId ? true : false}
                       />
                     )}
                   </Item>
                   <Item label="x" {...layout}>
                     {getFieldDecorator("x", {
-                      initialValue: selectedIndex === -1 ? '' : anchors[selectedIndex].coords[0].toFixed(2),
+                      initialValue: !selectedId ? '' : anchors[selectedId].coords[0].toFixed(2),
                       validateFirst: true,
                       rules: [
                         { validator: (rule, value, callback) => {
@@ -548,16 +541,18 @@ class Home extends Component {
                       ]
                     })(
                       <Input
-                        // value={selectedIndex === -1 ? '' : anchors[selectedIndex].coords[0]}
-                        onBlur={() => console.log("blur")}
-                        disabled={selectedIndex=== -1 ? true : false}
+                        // value={selectedId? '' : anchors[selectedIndex].coords[0]}
+                        // onBlur={() => console.log("blur")}
+                        disabled={!selectedId ? true : false}
                         onChange={(event) => {
-                          if (selectedIndex !== -1 && event.target.value && !isNaN(event.target.value)) {
+                          if (selectedId && event.target.value && !isNaN(event.target.value)) {
                             console.log(isNaN(event.target.value));
-                            anchors[selectedIndex].coords[0] = parseFloat(event.target.value);
-                            anchor_x[selectedIndex] = map_x - map_w/2 + anchors[selectedIndex].coords[0]*ratio*scaling;
-                            this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
-                            this.setState({anchors});
+                            anchors[selectedId].coords[0] = parseFloat(event.target.value);
+                            canvasData.anchor[selectedId].x =  canvasData.map.x -  canvasData.map.w/2 +  anchors[selectedId].coords[0]*RATIO*scaling;
+                            this.draw(canvasData);
+                            // anchor_x[selectedId] = map_x - map_w/2 + anchors[selectedId].coords[0]*RATIO*scaling;
+                            // this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
+                            this.setState({canvasData, anchors});
                           }
                         }}
                         suffix={
@@ -570,20 +565,22 @@ class Home extends Component {
                   </Item>
                   <Item label="y" {...layout} >
                     {getFieldDecorator("y", {
-                      initialValue: selectedIndex === -1 ? '' : anchors[selectedIndex].coords[1].toFixed(2),
+                      initialValue: !selectedId ? '' : anchors[selectedId].coords[1].toFixed(2),
                       rules: [
                         { required: true, message: "请输入合法数值" },
                         { pattern: /^[0-9]+(\.)?[0-9]+$/, message: "请输入合法数值" },
                       ]
                     })(
                       <Input
-                        disabled={selectedIndex=== -1 ? true : false}
+                        disabled={!selectedId ? true : false}
                         onChange={(event) => {
-                          if (selectedIndex !== -1) {
-                            anchors[selectedIndex].coords[1] = parseFloat(event.target.value);
-                            anchor_y[selectedIndex] = map_y + map_h/2 - anchors[selectedIndex].coords[1]*ratio*scaling;
-                            this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
-                            this.setState({anchors});
+                          if (selectedId) {
+                            anchors[selectedId].coords[1] = parseFloat(event.target.value);
+                            canvasData.anchor[selectedId].y =  canvasData.map.y -  canvasData.map.h/2 +  anchors[selectedId].coords[1]*RATIO*scaling;
+                            this.draw(canvasData);
+                            // anchor_y[selectedIndex] = map_y + map_h/2 - anchors[selectedIndex].coords[1]*RATIO*scaling;
+                            // this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
+                            this.setState({canvasData, anchors});
                           }
                         }}
                         suffix={
@@ -596,13 +593,13 @@ class Home extends Component {
                   </Item>
                   <Item label="A" {...layout}>
                     {getFieldDecorator("A", {
-                      initialValue: selectedIndex === -1 ? '' : anchors[selectedIndex].coords[2],
+                      initialValue: !selectedId ? '' : anchors[selectedId].coords[2],
                     })(
                       <Input
-                      disabled={selectedIndex=== -1 ? true : false}
+                      disabled={!selectedId ? true : false}
                         // onChange={(event) => {
                         //   anchors[selectedIndex].coords[0] = parseFloat(event.target.value);
-                        //   anchor_x[selectedIndex] = map_x + anchors[selectedIndex].coords[0]*ratio;
+                        //   anchor_x[selectedIndex] = map_x + anchors[selectedIndex].coords[0]*RATIO;
                         //   this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
                         //   this.setState({anchors});
                         // }}
@@ -611,31 +608,46 @@ class Home extends Component {
                   </Item>
                   <Item label="N" {...layout}>
                     {getFieldDecorator("N", {
-                      initialValue: selectedIndex === -1 ? '' : anchors[selectedIndex].coords[3],
+                      initialValue: !selectedId ? '' : anchors[selectedId].coords[3],
                     })(
                       <Input
-                        disabled={selectedIndex=== -1 ? true : false}
+                        disabled={!selectedId ? true : false}
                         // onChange={(event) => {
                         //   anchors[selectedIndex].coords[0] = parseFloat(event.target.value);
-                        //   anchor_x[selectedIndex] = map_x + anchors[selectedIndex].coords[0]*ratio;
+                        //   anchor_x[selectedIndex] = map_x + anchors[selectedIndex].coords[0]*RATIO;
                         //   this.draw(map_x, map_y, map_w, map_h, anchor_x, anchor_y, anchor_w, anchor_h);
                         //   this.setState({anchors});
                         // }}
                       />
                     )}
                   </Item>
+
                   <Item>
                     <div className="update-btn">
-                      <Button loading={updateLoading} onClick={() => this.updateAnchor(anchors[selectedIndex]._id)}>
+                      <Button loading={updateLoading} onClick={() => this.updateAnchor(anchors[selectedId]._id)}>
                         提交修改
                       </Button>
                     </div>
                     <div className="delete-btn">
-                      <Button loading={deleteLoading} onClick={() => this.deleteAnchor(anchors[selectedIndex]._id)}>
+                      <Button loading={deleteLoading} onClick={() => this.deleteAnchor(anchors[selectedId]._id)}>
                         删除
                       </Button>
                     </div>
                   </Item>
+                  {!showAdd? null : (
+                  <Item>
+                    <div className="update-btn">
+                      <Button loading={updateLoading} onClick={() => this.updateAnchor(anchors[selectedId]._id)}>
+                        提交修改
+                      </Button>
+                    </div>
+                    <div className="delete-btn">
+                      <Button loading={deleteLoading} onClick={() => this.deleteAnchor(anchors[selectedId]._id)}>
+                        删除
+                      </Button>
+                    </div>
+                  </Item>
+                  )}
                 </Form>
               </div>
               )}
