@@ -31,96 +31,98 @@ canvas{
   }
 }
 
-.data {
+.data-control {
   position: absolute;
   right: 40px;
   top: 120px;
-  // width: 250px;
+  width: 250px;
 
-  .site-collapse-custom-collapse {
-    background: rgba(255, 255, 255, 0);
-    // border-radius: 5px;
-    // margin-bottom: 24px;
-    // border: 0px;
-    // overflow: hidden;
+  .search-add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
 
-    .site-collapse-custom-panel {
+    .ant-btn {
+      margin-left: 5px;
+      padding: 0;
+      width: 50px;
       background: transparent;
-      // margin-top: 24px;
-      border: 0;
-      // overflow: hidden;
+      color: rgba(0, 104, 216, 0.7);
+      border: 0.8px solid rgba(0, 104, 216, 0.7);
 
-      .ant-collapse-header {
-        background:transparent;
-        // background: transparent;
-        .search-add {
-          display: flex;
-          // margin: 0 auto 30px;
+      &:hover {
+        color: white;
+        background: rgba(39, 143, 255, 0.7);
+        border: 0;
+      }
+    }
 
-          .ant-btn {
-            margin-left: 5px;
-            padding: 0;
-            width: 50px;
-            background: transparent;
-            color: rgba(0, 104, 216, 0.7);
-            border: 0.8px solid rgba(0, 104, 216, 0.7);
+    .link-button {
+      margin: 0px 5px;
+      color: black;
+    }
+  }
 
-            &:hover {
-              color: white;
-              background: rgba(39, 143, 255, 0.7);
-              border: 0;
-            }
-          }
+  .anchor-form {
+    background: rgba(225, 236, 245, 0.8);
+    padding: 20px 10px;
+
+    .update-btn {
+      .ant-btn {
+        width: 100%;
+        background: transparent;
+        color: rgba(0, 104, 216, 0.7);
+        border: 1px solid rgba(0, 104, 216, 0.7);
+
+        &:hover {
+          color: white;
+          background: rgba(39, 143, 255, 0.7);
+          border: 0;
         }
       }
+      margin-bottom: 10px;
+    }
 
-      .ant-collapse-content{
+    .delete-btn .ant-btn {
+      width: 100%;
+      background: transparent;
+      color: rgba(255, 0, 0, 0.712);;
+      border: 1px solid rgba(255, 0, 0, 0.7);
 
-        .ant-collapse-content-box {
-          background: rgba(226, 238, 247, 0.815);
-          padding-top: 0;
-          padding-bottom: 0;
-          margin-left: 15px;
-          margin-right: 15px;
+      &:hover {
+        color: white;
+        background: rgba(255, 0, 0, 0.7);
+        border: 0;
+      }
+    }
 
-          .anchor-form {
-            padding-top: 24px;
-            padding-bottom: 1px;
+    .add-btn {
+      .ant-btn {
+        width: 100%;
+        background: transparent;
+        color: rgba(0, 104, 216, 0.7);
+        border: 1px solid rgba(0, 104, 216, 0.7);
 
-            .ant-form-item {
-              // margin-bottom: 20px;
-            }
-
-            .update-btn {
-              .ant-btn {
-                width: 100%;
-                background: transparent;
-                color: rgba(0, 104, 216, 0.7);
-                border: 1px solid rgba(0, 104, 216, 0.7);
-
-                &:hover {
-                  color: white;
-                  background: rgba(39, 143, 255, 0.7);
-                  border: 0;
-                }
-              }
-              margin-bottom: 10px;
-            }
-
-            .delete-btn .ant-btn {
-              width: 100%;
-              background: transparent;
-              color: rgba(255, 0, 0, 0.712);;
-              border: 1px solid rgba(255, 0, 0, 0.7);
-
-              &:hover {
-                color: white;
-                background: rgba(255, 0, 0, 0.7);
-                border: 0;
-              }
-            }
-          }
+        &:hover {
+          color: white;
+          background: rgba(39, 143, 255, 0.7);
+          border: 0;
         }
+      }
+      margin-bottom: 10px;
+    }
+
+    .cancel-btn .ant-btn {
+      width: 100%;
+      background: transparent;
+      color: rgba(0, 104, 216, 0.7);
+      border: 1px solid rgba(0, 104, 216, 0.7);
+
+      &:hover {
+        color: white;
+        background: rgba(39, 143, 255, 0.7);
+        border: 0;
       }
     }
   }

@@ -326,8 +326,9 @@ export default class User extends Component {
 
     const extra = (
       <Button type='primary' onClick={() => this.showAdd()}>
-      <Icon type='plus'/>
-      添加
+      {/* <Icon type='plus'/>
+      添加 */}
+        <Icon type="user-add" />
     </Button>
     )
 
