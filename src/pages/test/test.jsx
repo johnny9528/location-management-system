@@ -624,7 +624,7 @@ class Home extends Component {
     // 搜索结果
     const searchResult = (
       <Menu
-        style={{maxHeight: 200, overflow: 'auto'}}
+        style={{height: 200, overflow: 'auto'}}
         onClick={(item) => {
           // 将搜索选中的anchor移动到中心
           let offset_x = this.canvas.width/2 - canvasData.anchor[item.key].x;

@@ -176,9 +176,9 @@ class Header extends Component {
           </Link>
         </div>
         <div className="header-middle">
-          <span>{currentTime}</span>
-          <img src={dayPictureUrl} alt="weather" />
-          <span>{weather}</span>
+          {/* <span>{currentTime}</span> */}
+          {/* <img src={dayPictureUrl} alt="weather" /> */}
+          {/* <span>{weather}</span> */}
         </div>
         <div className="header-right">
           <Dropdown overlay={menu} placement="bottomCenter">
