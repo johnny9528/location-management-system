@@ -31,7 +31,8 @@
     "redux-devtools-extension": "^2.13.8",
     "redux-thunk": "^2.3.0",
     "resize-observer-polyfill": "^1.5.1",
-    "store": "^2.0.12"
+    "store": "^2.0.12",
+    "websocket": "^1.0.31"
   },
   "scripts": {
     "start": "react-app-rewired start",

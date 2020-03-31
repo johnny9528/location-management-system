@@ -155,8 +155,7 @@ class Anchor extends Component {
       canvasBox = this.canvas.getBoundingClientRect();
       x = e.clientX - canvasBox.left;
       y = e.clientY - canvasBox.top;
-      // console.log("highlight",x ,y);
-      console.log(canvasBox);
+
       Object.keys(canvasData.anchor).forEach((id) => {
         this.ctx.beginPath();
         this.ctx.arc(canvasData.anchor[id].x, canvasData.anchor[id].y, TRIGGER_RADIS, 0, Math.PI*2);
@@ -352,6 +351,7 @@ class Anchor extends Component {
 
   // 画地图和所有anchor
   draw = (canvasData) => {
+    console.log('draw');
     const { map, anchor } = canvasData;
     // 清空canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
