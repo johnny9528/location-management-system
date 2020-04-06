@@ -1,28 +1,30 @@
 import React, { Component } from 'react'
-import { Redirect} from "react-router-dom";
+// import { Redirect} from "react-router-dom";
 import ResizeObserver from 'resize-observer-polyfill';
 import './index.less'
 import { Form, Icon, message } from 'antd'
 import storageUtils from '../../utils/storageUtils'
 import LinkButton from '../../components/link-button'
-import { reqAnchors } from '../../api'
+import { reqTags, reqUserTags } from '../../api'
+import { reqAnchors, reqUserAnchors } from '../../api'
 import mapPic from '../../assets/images/map.png'
 import anchorPic from '../../assets/images/anchor.png'
 import tagPic from '../../assets/images/tag.png'
 import tagBeforePic from '../../assets/images/tag_before.png'
 import notSavedAnchorPic from '../../assets/images/notSaved.png'
 import DataControl from './data-control'
-
-const REAL_WIDTH = 55;  //地图实际大小
-const REAL_HEIGH = 44;
-const MAP_W = 700; //网页地图大小
-const MAP_H = MAP_W/REAL_WIDTH*REAL_HEIGH;
-const RATIO = MAP_W/REAL_WIDTH; //真实地图与网页地图比值
-const ANCHOR_W = 30; //绘图anchor宽度
-const ANCHOR_H = 30; //绘图anchor高度
-const TAG_W = 30; //绘图tag宽度
-const TAG_H = 30; //绘图tag高度
-const TRIGGER_RADIS = 15; //触发事件的半径
+import AddForm from './add-form'
+import UpdateForm from './update-form'
+import {
+  MAP_W,
+  MAP_H,
+  RATIO,
+  ANCHOR_W,
+  ANCHOR_H,
+  TAG_W,
+  TAG_H,
+  TRIGGER_RADIS,
+} from '../../config/mapConfig'
 
 
 class Anchor extends Component {
@@ -31,8 +33,8 @@ class Anchor extends Component {
     // this.canvas = React.createRef();
 
     this.state = {
-      selectedId: '',
-      anchors: {},
+      // selectedId: '',
+      // anchors: {},
       canvasData: {}, // 储存画图所需数据
       /*  示例
       canvasData = {
@@ -55,22 +57,36 @@ class Anchor extends Component {
             "w":30,
             "h":30
           }
-        }
+        }，
+        "tag":{
+          "tId": "10001-04096",
+          "coord": [
+            {"x": 1, "y": 1},
+            {"x": 2, "y": 2},
+          ]
+        },
       }
       */
-      tags: {},
+      tags: [],
       scaling: 1, // 缩放比例
-      showAdd: false,
-      showAnchor: true,
-      canvasWidth: 0,
-      canvasHeight: 0,
-      tagHistoryCount: 3,
+      showAdd: false, // 添加时显示add界面
+      showAnchor: true, // 是否显示anchor
+      canvasWidth: 1200,
+      canvasHeight: 620,
+      tagHistoryCount: 0, // 历史tag定位个数
+      selectedRowKeys: [], // tag table选中的tag的tId数组
+      showModal: '', // 控制显示添加修改界面
     }
   }
 
   getAnchors = async () => {
-    const hide = message.loading('数据加载中', 0)
-    let result = await reqAnchors();
+    // const hide = message.loading('数据加载中', 0)
+    let result
+    if (this.user.level === 'admin') {
+      result = await reqAnchors();
+    } else if (this.user.level === 'user') {
+      result = await reqUserAnchors();
+    }
     if (result.code === 200) {
       let anchors = {};
       result.anchors.forEach((value) => {
@@ -78,10 +94,27 @@ class Anchor extends Component {
       })
       this.setState({ anchors })
     } else {
-      message.error("获取数据失败" + result.message);
+      message.error("获取anchor数据失败" + result.message);
     }
-    hide();
-    message.success('数据加载完成');
+    // hide();
+    // message.success('数据加载完成');
+  }
+
+  getTags = async () => {
+    let result;
+    if (this.user.level === 'admin') {
+      result = await reqTags();
+    } else if (this.user.level === 'user') {
+      result = await reqUserTags();
+    }
+    if (result.code === 200) {
+      this.setState({
+        tags: result.tag,
+        selectedRowKeys: [...result.tag.map((item) => item._id)],
+      })
+    } else {
+      message.error("获取tag数据失败" + result.message);
+    }
   }
 
   initCanvas = () => {
@@ -163,13 +196,13 @@ class Anchor extends Component {
     let x, y; // 当前鼠标位置
     // this.scaling = 1; // 缩放比例
     // let clickedId = '';
-    let lastClickTime = 0;
-    let lastClickLocation = { x: 0, y: 0 };
+    // let lastClickTime = 0;
+    // let lastClickLocation = { x: 0, y: 0 };
     let canvasBox; // 获取canvas的包围盒对象
 
     // 移动靠近anchor时 放大图标
     const highlightAnchor = (e) => {
-      const { canvasData, selectedId } = this.state;
+      const { canvasData, anchors, selectedId } = this.state;
       // 获取canvas的包围盒对象
       canvasBox = this.canvas.getBoundingClientRect();
       x = e.clientX - canvasBox.left;
@@ -178,17 +211,26 @@ class Anchor extends Component {
       Object.keys(canvasData.anchor).forEach((id) => {
         this.ctx.beginPath();
         this.ctx.arc(canvasData.anchor[id].x, canvasData.anchor[id].y, TRIGGER_RADIS, 0, Math.PI*2);
-        // 判断鼠标是否在范围内
         if (id !== selectedId) {
+          // 判断鼠标是否在范围内
           if (this.ctx.isPointInPath(x, y)) {
-            canvasData.anchor[id].w = 2 * ANCHOR_W;
-            canvasData.anchor[id].h = 2 * ANCHOR_H;
-            this.draw(canvasData);
-
+            // 只有在变化的时候才会重新画图
+            if (canvasData.anchor[id].w === ANCHOR_W) {
+              canvasData.anchor[id].w = 2 * ANCHOR_W;
+              canvasData.anchor[id].h = 2 * ANCHOR_H;
+              this.draw(canvasData);
+              // this.drawID(
+              //   canvasData.anchor[id].x,
+              //   canvasData.anchor[id].y,
+              //   anchors[id].aId
+              // )
+            }
           } else {
-            canvasData.anchor[id].w = ANCHOR_W;
-            canvasData.anchor[id].h = ANCHOR_H;
-            this.draw(canvasData);
+            if (canvasData.anchor[id].w === 2 * ANCHOR_W) {
+              canvasData.anchor[id].w = ANCHOR_W;
+              canvasData.anchor[id].h = ANCHOR_H;
+              this.draw(canvasData);
+            }
           }
         }
       })
@@ -208,78 +250,78 @@ class Anchor extends Component {
       let y_origin = e.clientY - canvasBox.top;
       // console.log("down",x, y);
 
-      Object.keys(canvasData.anchor).forEach((id) => {
+      // Object.keys(canvasData.anchor).forEach((id) => {
 
-        this.ctx.beginPath();
-        this.ctx.arc(canvasData.anchor[id].x, canvasData.anchor[id].y, selectedId === id ? 2*TRIGGER_RADIS : TRIGGER_RADIS, 0, Math.PI*2);
-        // 判断鼠标是否在anchor范围内
-        if (this.ctx.isPointInPath(x, y)) {
-          // 点击anchor
-          // isInAnchor = true;
-          // clickedId = id;
+      //   this.ctx.beginPath();
+      //   this.ctx.arc(canvasData.anchor[id].x, canvasData.anchor[id].y, selectedId === id ? 2*TRIGGER_RADIS : TRIGGER_RADIS, 0, Math.PI*2);
+      //   // 判断鼠标是否在anchor范围内
+      //   if (this.ctx.isPointInPath(x, y)) {
+      //     // 点击anchor
+      //     // isInAnchor = true;
+      //     // clickedId = id;
 
-          // 点击图标后放大，其他图标还原大小
-          if (selectedId) {
-            canvasData.anchor[selectedId].w = ANCHOR_W;
-            canvasData.anchor[selectedId].h = ANCHOR_H;
-          }
-          canvasData.anchor[id].w = 2 * ANCHOR_W;
-          canvasData.anchor[id].h = 2 * ANCHOR_H;
+      //     // 点击图标后放大，其他图标还原大小
+      //     if (selectedId) {
+      //       canvasData.anchor[selectedId].w = ANCHOR_W;
+      //       canvasData.anchor[selectedId].h = ANCHOR_H;
+      //     }
+      //     canvasData.anchor[id].w = 2 * ANCHOR_W;
+      //     canvasData.anchor[id].h = 2 * ANCHOR_H;
 
-          this.draw(canvasData);
-          this.props.form.resetFields(['x', 'y']);
-          this.setState({ canvasData, selectedId: id, showAdd: canvasData.anchor[id].notSavedType === 'add' ? true : false });
+      //     this.draw(canvasData);
+      //     this.props.form.resetFields(['x', 'y']);
+      //     this.setState({ canvasData, selectedId: id, showAdd: canvasData.anchor[id].notSavedType === 'add' ? true : false });
 
-          // 记录移动前数据
-          // 对象深度拷贝，浅拷贝{...obj}
-          // let anchors_before = JSON.parse(JSON.stringify(anchors));
-          // let canvasData_before = JSON.parse(JSON.stringify(canvasData));
+      //     // 记录移动前数据
+      //     // 对象深度拷贝，浅拷贝{...obj}
+      //     let anchors_before = JSON.parse(JSON.stringify(anchors));
+      //     let canvasData_before = JSON.parse(JSON.stringify(canvasData));
 
-          // 移动anchor
-          // this.canvas.onmousemove = (e) => {
-          //   // 获取canvas的包围盒对象
-          //   canvasBox = this.canvas.getBoundingClientRect();
-          //   x = e.clientX - canvasBox.left;
-          //   y = e.clientY - canvasBox.top;
+      //     // 移动anchor
+      //     this.canvas.onmousemove = (e) => {
+      //       // 获取canvas的包围盒对象
+      //       canvasBox = this.canvas.getBoundingClientRect();
+      //       x = e.clientX - canvasBox.left;
+      //       y = e.clientY - canvasBox.top;
 
-          //   // 计算坐标偏移
-          //   anchors[id].coords[0] = anchors_before[id].coords[0] + (x -x_origin)/RATIO/scaling;
-          //   anchors[id].coords[1] = anchors_before[id].coords[1] - (y -y_origin)/RATIO/scaling;
-          //   canvasData.anchor[id].x = canvasData_before.anchor[id].x + x - x_origin;
-          //   canvasData.anchor[id].y = canvasData_before.anchor[id].y + y - y_origin;
-          //   canvasData.anchor[id].notSaved = true;
-          //   canvasData.anchor[id].notSavedType = canvasData.anchor[id].notSavedType === 'add' ?  'add' : 'move' //如果为保存状态为add 则不修改
+      //       // 计算坐标偏移
+      //       anchors[id].coords[0] = anchors_before[id].coords[0] + (x -x_origin)/RATIO/scaling;
+      //       anchors[id].coords[1] = anchors_before[id].coords[1] - (y -y_origin)/RATIO/scaling;
+      //       canvasData.anchor[id].x = canvasData_before.anchor[id].x + x - x_origin;
+      //       canvasData.anchor[id].y = canvasData_before.anchor[id].y + y - y_origin;
+      //       canvasData.anchor[id].notSaved = true;
+      //       canvasData.anchor[id].notSavedType = canvasData.anchor[id].notSavedType === 'add' ?  'add' : 'move' //如果为保存状态为add 则不修改
 
-          //   this.draw(canvasData);
-          //   this.setState({ anchors, canvasData })
-          // }
-        } else {
+      //       this.draw(canvasData);
+      //       this.setState({ anchors, canvasData })
+      //     }
+      //   } else {
 
-        }
-      })
+      //   }
+      // })
 
       // 点击地图
       // this.props.form.resetFields();
 
       // 双击地图时所有anchor还原大小
-      let clickTime = new Date().getTime();
+      // let clickTime = new Date().getTime();
 
-      // 判断两次点击时间差
-      if (clickTime - lastClickTime < 200
-        && lastClickLocation.x === x_origin
-        && lastClickLocation.y === y_origin) {
+      // // 判断两次点击时间差
+      // if (clickTime - lastClickTime < 200
+      //   && lastClickLocation.x === x_origin
+      //   && lastClickLocation.y === y_origin) {
 
-        Object.keys(canvasData.anchor).forEach((id) => {
-          canvasData.anchor[id].w = ANCHOR_W;
-          canvasData.anchor[id].h = ANCHOR_H;
-        });
-        this.draw(canvasData);
-        this.setState({ selectedId: '', canvasData });
-      }
-      // 记录上次点击时间和坐标
-      lastClickTime = clickTime;
-      lastClickLocation.x = x_origin;
-      lastClickLocation.y = y_origin;
+      //   Object.keys(canvasData.anchor).forEach((id) => {
+      //     canvasData.anchor[id].w = ANCHOR_W;
+      //     canvasData.anchor[id].h = ANCHOR_H;
+      //   });
+      //   this.draw(canvasData);
+      //   this.setState({ selectedId: '', canvasData });
+      // }
+      // // 记录上次点击时间和坐标
+      // lastClickTime = clickTime;
+      // lastClickLocation.x = x_origin;
+      // lastClickLocation.y = y_origin;
 
       // 记录移动前地图坐标，anchor坐标
       let canvasData_before = JSON.parse(JSON.stringify(canvasData));
@@ -371,11 +413,12 @@ class Anchor extends Component {
 
   // 画地图和所有anchor
   draw = (canvasData) => {
-    console.log('draw');
-    const { map, anchor } = canvasData;
-    const { scaling, tags } = this.state;
+    // console.log('draw');
+    const { map, anchor, tag } = canvasData;
+    const { scaling, tagHistoryCount } = this.state;
     // 清空canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
     // 画地图
     this.ctx.drawImage(
       this.img,
@@ -386,38 +429,51 @@ class Anchor extends Component {
     );
 
     // 画tag
-    if ( Object.keys(tags).length !== 0) {
-      // console.log(tags);
-      Object.keys(tags).forEach((aId) => {
-        let length = tags[aId].coord.length;
-        tags[aId].coord.forEach((value, index) => {
-          if (index > length - this.state.tagHistoryCount - 2) {
-            let img = this.img_tag_before
-            if (index === length - 1) {
-              img = this.img_tag;
-              this.drawCoord(
-                canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
-                canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
-                value.x,
-                value.y,
-              )
+    if (tag) {
+      Object.keys(tag).forEach((id) => {
+        // console.log(this.state.selectedRowKeys.indexOf(id))
+        if (this.state.selectedRowKeys.indexOf(id) > -1) {
+          let length = tag[id].coord.length;
+          tag[id].coord.forEach((value, index) => {
+            if (index > length - tagHistoryCount - 2) {
+              let img = this.img_tag_before;
+              let tag_w = TAG_W;
+              let tag_h = TAG_H;
+              // 最新数据用不同图标，同时画出坐标
+              if (index === length - 1) {
+                img = this.img_tag;
+                this.drawCoord(
+                  canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
+                  value.x,
+                  value.y,
+                );
+                this.drawID(
+                  canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
+                  tag[id].tId
+                )
+              }
+              this.ctx.drawImage(
+                img,
+                canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling - tag_w/2,
+                canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling - tag_h/2,
+                tag_w,
+                tag_h,
+              );
+              if (index + 1 < length) {
+                this.drawLine(
+                  canvasData.map.x - canvasData.map.w/2 + tag[id].coord[index].x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - tag[id].coord[index].y*RATIO*scaling,
+                  canvasData.map.x - canvasData.map.w/2 + tag[id].coord[index + 1].x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - tag[id].coord[index + 1].y*RATIO*scaling,
+                  "rgba(18,150,219,0.5)",
+                  "rgba(18,150,219,0.5)",
+                );
+              }
             }
-            this.ctx.drawImage(
-              img,
-              canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling - TAG_W/2,
-              canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling - TAG_H/2,
-              TAG_W,
-              TAG_H,
-            );
-            if (index + 1 < length)
-            this.drawLine(
-              canvasData.map.x - canvasData.map.w/2 + tags[aId].coord[index].x*RATIO*scaling,
-              canvasData.map.y + canvasData.map.h/2 - tags[aId].coord[index].y*RATIO*scaling,
-              canvasData.map.x - canvasData.map.w/2 + tags[aId].coord[index + 1].x*RATIO*scaling,
-              canvasData.map.y + canvasData.map.h/2 - tags[aId].coord[index + 1].y*RATIO*scaling,
-            );
-          }
-        })
+          })
+        }
       })
     }
 
@@ -435,6 +491,8 @@ class Anchor extends Component {
               this.originAnchorCanvas[id].y,
               anchor[id].x,
               anchor[id].y,
+              "rgba(216,30,6,1)",
+              "rgba(191,191,191,1)",
             );
             this.ctx.drawImage(
               this.img_anchor,
@@ -467,48 +525,45 @@ class Anchor extends Component {
     }
   }
 
-  // 绘制移动后和移动前anchor间连线
-  drawLine = (from_x, from_y, to_x, to_y) => {
-    // this.ctx.beginPath();
-    // // 设置线宽
-    // this.ctx.lineWidth = 1;
-    // // 设置间距（参数为无限数组，虚线的样式会随数组循环）
-    // this.ctx.setLineDash([8, 8]);
-    // // 移动画笔至坐标 x20 y20 的位置
-    // this.ctx.moveTo(from_x, from_y);
-    // // 绘制到坐标 x20 y100 的位置
-    // this.ctx.lineTo(to_x, to_y);
-    // // 填充颜色
-    // this.ctx.strokeStyle="red";
-    // // 开始填充
-    // this.ctx.stroke();
-    // this.ctx.closePath();
-
+  // 绘制连线
+  drawLine = (
+    from_x,
+    from_y,
+    to_x,
+    to_y,
+    from_color = "rgba(0,0,0,1)", // 默认黑色
+    to_color = "rgba(0,0,0,1)"
+    ) => {
     this.ctx.beginPath();
     // 设置线宽
     this.ctx.lineWidth = 2;
     // 设置间距（参数为无限数组，虚线的样式会随数组循环）
     this.ctx.setLineDash([4, 4]);
-    // 移动画笔至坐标 x20 y20 的位置
     this.ctx.moveTo(from_x, from_y);
-    // 绘制到坐标 x20 y100 的位置
     this.ctx.lineTo(to_x, to_y);
-    var gradient = this.ctx.createLinearGradient(from_x, from_y, to_x, to_y);
-    gradient.addColorStop(0, "rgba(216,30,6,1)");
-    gradient.addColorStop(1, "rgba(191,191,191,1)");
+    let gradient = this.ctx.createLinearGradient(from_x, from_y, to_x, to_y);
+    gradient.addColorStop(0, from_color);
+    gradient.addColorStop(1, to_color);
     // 填充颜色
-    this.ctx.strokeStyle=gradient;
+    this.ctx.strokeStyle = gradient;
     // 开始填充
     this.ctx.stroke();
     this.ctx.closePath();
   }
 
-  // 在绘制anchor下方绘制坐标
+  // 在绘制图标下方绘制真实坐标
   drawCoord = (x, y, real_x, real_y) => {
     this.ctx.textAlign='center';
 		this.ctx.textBaseline='middle';
 		this.ctx.font="14px SimSun, Songti SC";
 		this.ctx.fillText(`(${real_x.toFixed(2)}, ${real_y.toFixed(2)})`, x, y + 20);
+  }
+
+  drawID = (x, y, id) => {
+    this.ctx.textAlign='center';
+		this.ctx.textBaseline='middle';
+		this.ctx.font="14px SimSun, Songti SC";
+		this.ctx.fillText(`${id}`, x, y - 20);
   }
 
   // 获得父组件的长宽位置
@@ -517,7 +572,7 @@ class Anchor extends Component {
       const ro = new ResizeObserver((entries, observer) => {
         // eslint-disable-next-line no-restricted-syntax
         for (const entry of entries) {
-          const { left, top, width, height } = entry.contentRect;
+          const { width } = entry.contentRect;
           // console.log(`Element's size: ${width} x ${height} `);
           this.setState({ canvasWidth: width });
         }
@@ -568,50 +623,76 @@ class Anchor extends Component {
     this.reDraw({ canvasData: canvasData_afterzoom, scaling: scaling_after })
   }
 
+  // 切换显示anchor
   swichShowAnchor = (checked) => {
     this.setState({ showAnchor: checked });
   }
 
+  // 控制tag历史定位个数
   tagHistoryCount = (value) => {
     this.setState({ tagHistoryCount: value });
+  }
+
+  // 选中的tag
+  onSelectChange = selectedRowKeys => {
+    // console.log(selectedRowKeys);
+    this.setState({ selectedRowKeys });
+  };
+
+  // 控制添加和修改框的显示
+  setShowModal = (option, tag) => {
+    if (option === 'update') {
+      this.tag = tag;
+    }
+    this.setState({ showModal: option});
   }
 
   webSocket = () => {
     let W3CWebSocket = require("websocket").w3cwebsocket;
 
     let client = new W3CWebSocket(
-      "ws://47.93.42.142:3004/web?user_id=xuke&client_type=web",
+      `ws://47.93.42.142:3004/web?user_id=${this.user.id}&level=${this.user.level}&client_type=web`,
       "echo-protocol"
     );
 
     client.onerror = () => {
-      console.log("Connection Error");
+      // console.log("Connection Error");
+      message.info("与服务器连接错误");
     };
 
     client.onopen = () => {
-      console.log("WebSocket Client Connected");
+      message.info("与服务器连接成功，开始推送实时数据");
+      // console.log("WebSocket Client Connected");
       client.send(JSON.stringify({ data: "string" }));
 
       client.onmessage = (e) => {
-        if (e.data !== 'success') {
-          let res = JSON.parse(e.data);
-          // console.log(res);
-          this.setState({tags: res}, () => {
-            this.ctx && this.draw(this.state.canvasData);
-          });
-        }
+        let res = JSON.parse(e.data);
+        let { canvasData } = this.state;
+        // 将websocket发送的tag定位数据给canvasData
+        canvasData.tag = res;
+        this.setState({canvasData}, () => {
+          this.ctx && this.draw(this.state.canvasData);
+        });
       };
     };
 
     client.onclose = () => {
-      console.log("echo-protocol Client Closed");
+      message.info("与服务器连接断开");
+      // console.log("echo-protocol Client Closed");
     };
   }
 
   componentDidMount = () => {
     this.isMount = true;
-    Promise.resolve(this.getAnchors()).then(() => {
+    this.hide = message.loading('数据加载中', 0);
+    Promise.all([
+      this.getAnchors(),
+      this.getTags()
+    ]).then(() => {
       if (this.isMount) {
+        this.hide();
+        this.hide = null;
+        message.success('数据加载完成');
         this.initCanvas();
         this.listenMouse();
         this.webSocket();
@@ -629,24 +710,32 @@ class Anchor extends Component {
   // 离开页面取消异步操作
   componentWillUnmount = () => {
     this.isMount = false;
+    if (this.hide) {
+      this.hide();
+      message.success('加载取消');
+    }
     this.setState = (state, callback) => {
       return
     }
   }
 
   render = () => {
-    const user = storageUtils.getUser()
-    if(user.level !== "admin") {
-      message.warn("无权访问")
-      return <Redirect to='/login'/>
-    }
+    console.log('render');
+    this.user = storageUtils.getUser()
+    // this.userId = user.id;
+    // this.level = user.level;
+    // console.log(user.username);
+    // if(user.level !== "admin") {
+    //   message.warn("无权访问")
+    //   return <Redirect to='/login'/>
+    // }
 
-    const { scaling, canvasWidth } = this.state;
+    const { scaling, canvasWidth, canvasHeight, showModal } = this.state;
 
     return (
-      <div>
+      <div className='tag'>
         <div className='map' ref={this.refHandle}>
-          {canvasWidth && <canvas id="myCanvas" width={canvasWidth} height="620"></canvas>}
+          {canvasWidth && <canvas id="myCanvas" width={canvasWidth} height={canvasHeight}></canvas>}
         </div>
         <div className="map-control">
           <LinkButton onClick={this.zoomIn}>
@@ -671,6 +760,23 @@ class Anchor extends Component {
           move={this.move}
           swichShowAnchor={this.swichShowAnchor}
           tagHistoryCount={this.tagHistoryCount}
+          onSelectChange={this.onSelectChange}
+          setShowModal={this.setShowModal}
+          getTags={this.getTags}
+          user={this.user}
+        />
+        <AddForm
+          showModal={showModal}
+          setShowModal={this.setShowModal}
+          getTags={this.getTags}
+          user={this.user}
+        />
+        <UpdateForm
+          showModal={showModal}
+          setShowModal={this.setShowModal}
+          tag={this.tag}
+          getTags={this.getTags}
+          user={this.user}
         />
       </div>
     )

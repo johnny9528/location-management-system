@@ -7,10 +7,9 @@ import { reqUsers, reqAddUser, reqUpdateUser, reqDeleteUser } from "../../api/in
 import storageUtils from '../../utils/storageUtils'
 import AddForm from './add-form'
 import UpdateForm from './update-form'
-// const expandedRowRender = record => <p>{record.desc}</p>;
-/*
-用户路由
- */
+
+const { confirm } = Modal;
+
 export default class User extends Component {
   state = {
     // users: [], // 所有用户列表
@@ -23,34 +22,10 @@ export default class User extends Component {
     expandedRowKeys: [], //装展开行的key
     confirmAddLoading: false,
     confirmUpdateLoading: false,
+    confirmDeleteLoading: false,
   };
 
   initColumns = () => {
-    //修改下拉选项
-    // const menu = (user) => (
-    //   <Menu>
-    //     <Menu.Item>
-    //       <LinkButton
-    //         onClick={() => {
-    //           user.option = true; //选择修改用户名
-    //           this.showUpdate(user);
-    //         }}
-    //       >
-    //         用户名
-    //       </LinkButton>
-    //     </Menu.Item>
-    //     <Menu.Item>
-    //       <LinkButton
-    //         onClick={() => {
-    //           user.option = false; //选择修改密码
-    //           this.showUpdate(user);
-    //         }}
-    //       >
-    //         密码
-    //       </LinkButton>
-    //     </Menu.Item>
-    //   </Menu>
-    // );
     this.userCol = [
       {
         width:'16%',
@@ -84,22 +59,16 @@ export default class User extends Component {
           return (
             <span>
               <LinkButton onClick={() => this.showUpdate(user)}>修改</LinkButton>
-              {/* <span className="table-operation">
-                <Dropdown overlay={menu(user)}>
-                  <LinkButton>
-                    修改 <Icon type="down" />
-                  </LinkButton>
-                </Dropdown>
-              </span> */}
               <Divider type="vertical" />
-              <Popconfirm
+              <LinkButton onClick={() => this.confirmDelete(user._id)}>删除</LinkButton>
+              {/* <Popconfirm
                 title="是否删除此用户所有数据?"
                 onConfirm={() => this.deleteUser(user._id)}
                 okText="是"
                 cancelText="否"
               >
                 <LinkButton>删除</LinkButton>
-              </Popconfirm>
+              </Popconfirm> */}
             </span>
           );
         }
@@ -237,7 +206,7 @@ export default class User extends Component {
           message.success("添加成功");
           this.getUsers();
         } else {
-          message.error(result.message);
+          message.error("添加失败" + result.message);
         }
         this.setState({confirmAddLoading: false})
       }
@@ -268,21 +237,34 @@ export default class User extends Component {
           this.getUsers()
         }
         else if (result.code === 11000) {
-          message.error('用户名重复')
+          message.error('修改失败：用户名已存在')
         }
         this.setState({confirmUpdateLoading: false})
       }
     })
   }
 
+  confirmDelete = (id) => {
+    let _this = this;
+    confirm({
+      title: '是否删除该用户？',
+      onOk() {
+        _this.deleteUser(id)
+      },
+      onCancel() {},
+    });
+  }
+
   deleteUser = async (id) => {
+    let hide = message.loading('删除中', 0);
     const result = await reqDeleteUser(id)
     if (result.code===200) {
+      hide();
       message.success("删除成功");
       this.getUsers()
     }
     else {
-      message.error(result.message)
+      message.error("删除失败" + result.message)
     }
   };
 

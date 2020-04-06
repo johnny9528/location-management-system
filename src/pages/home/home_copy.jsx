@@ -13,9 +13,7 @@ import {
   Col,
 } from 'antd'
 import storageUtils from '../../utils/storageUtils'
-// import memoryUtils from '../../utils/memoryUtils'
 import map_svg from './map_pin.svg';
-import memoryUtils from '../../utils/memoryUtils';
 const Item = Form.Item // 不能写在import之前
 const layout = {
   labelCol: { span: 10 },

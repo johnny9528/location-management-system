@@ -4,72 +4,119 @@ canvas{
   // height: 100%;
 }
 
-.map {
-  background-color: transparent;
-}
+.anchor {
+  position: relative;
 
-.map-control {
-  position: absolute;
-  top: 120px;
-  left: 250px;
-  display: flex;
-
-  div {
-    position: relative;
-    width: 100px;
-    bottom: 1.5px;
-    font-size: 20px;
-    font-weight: 500;
-    color: #000000;
-    text-align: center;
-    margin-left: 5px;
+  .map {
+    background-color: transparent;
   }
 
-  .link-button {
-    color: #000000;
-    margin: 0 5px;
-  }
-}
-
-.data-control {
-  position: absolute;
-  right: 40px;
-  top: 120px;
-  width: 250px;
-
-  .search-add {
+  .map-control {
+    position: absolute;
+    top: 20px;
+    left: 20px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
 
-    .ant-btn {
+    div {
+      position: relative;
+      width: 100px;
+      bottom: 1.5px;
+      font-size: 20px;
+      font-weight: 500;
+      color: #000000;
+      text-align: center;
       margin-left: 5px;
-      padding: 0;
-      width: 50px;
-      background: transparent;
-      color: rgba(0, 104, 216, 0.7);
-      border: 0.8px solid rgba(0, 104, 216, 0.7);
-
-      &:hover {
-        color: white;
-        background: rgba(39, 143, 255, 0.7);
-        border: 0;
-      }
     }
 
     .link-button {
-      margin: 0px 5px;
-      color: black;
+      color: #000000;
+      margin: 0 5px;
     }
   }
 
-  .anchor-form {
-    background: rgba(225, 236, 245, 0.8);
-    padding: 20px 10px;
+  .data-control {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 250px;
 
-    .update-btn {
+    .search-add {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+
       .ant-btn {
+        margin-left: 5px;
+        padding: 0;
+        width: 50px;
+        background: transparent;
+        color: rgba(0, 104, 216, 0.7);
+        border: 0.8px solid rgba(0, 104, 216, 0.7);
+
+        &:hover {
+          color: white;
+          background: rgba(39, 143, 255, 0.7);
+          border: 0;
+        }
+      }
+
+      .link-button {
+        margin: 0px 5px;
+        color: black;
+      }
+    }
+
+    .anchor-form {
+      background: rgba(225, 236, 245, 0.8);
+      padding: 20px 10px;
+
+      .update-btn {
+        .ant-btn {
+          width: 100%;
+          background: transparent;
+          color: rgba(0, 104, 216, 0.7);
+          border: 1px solid rgba(0, 104, 216, 0.7);
+
+          &:hover {
+            color: white;
+            background: rgba(39, 143, 255, 0.7);
+            border: 0;
+          }
+        }
+        margin-bottom: 10px;
+      }
+
+      .delete-btn .ant-btn {
+        width: 100%;
+        background: transparent;
+        color: rgba(255, 0, 0, 0.712);;
+        border: 1px solid rgba(255, 0, 0, 0.7);
+
+        &:hover {
+          color: white;
+          background: rgba(255, 0, 0, 0.7);
+          border: 0;
+        }
+      }
+
+      .add-btn {
+        .ant-btn {
+          width: 100%;
+          background: transparent;
+          color: rgba(0, 104, 216, 0.7);
+          border: 1px solid rgba(0, 104, 216, 0.7);
+
+          &:hover {
+            color: white;
+            background: rgba(39, 143, 255, 0.7);
+            border: 0;
+          }
+        }
+        margin-bottom: 10px;
+      }
+
+      .cancel-btn .ant-btn {
         width: 100%;
         background: transparent;
         color: rgba(0, 104, 216, 0.7);
@@ -80,49 +127,6 @@ canvas{
           background: rgba(39, 143, 255, 0.7);
           border: 0;
         }
-      }
-      margin-bottom: 10px;
-    }
-
-    .delete-btn .ant-btn {
-      width: 100%;
-      background: transparent;
-      color: rgba(255, 0, 0, 0.712);;
-      border: 1px solid rgba(255, 0, 0, 0.7);
-
-      &:hover {
-        color: white;
-        background: rgba(255, 0, 0, 0.7);
-        border: 0;
-      }
-    }
-
-    .add-btn {
-      .ant-btn {
-        width: 100%;
-        background: transparent;
-        color: rgba(0, 104, 216, 0.7);
-        border: 1px solid rgba(0, 104, 216, 0.7);
-
-        &:hover {
-          color: white;
-          background: rgba(39, 143, 255, 0.7);
-          border: 0;
-        }
-      }
-      margin-bottom: 10px;
-    }
-
-    .cancel-btn .ant-btn {
-      width: 100%;
-      background: transparent;
-      color: rgba(0, 104, 216, 0.7);
-      border: 1px solid rgba(0, 104, 216, 0.7);
-
-      &:hover {
-        color: white;
-        background: rgba(39, 143, 255, 0.7);
-        border: 0;
       }
     }
   }

@@ -24,6 +24,7 @@ import AddForm from './add-form'
 import UpdateForm from './update-form'
 
 const Option = Select.Option
+const { confirm } = Modal;
 
 /*
 Product的默认子路由组件
@@ -113,14 +114,15 @@ export default class Tag extends Component {
               {/*将product对象使用state传递给目标路由组件*/}
               <LinkButton onClick={() => this.showUpdate(tag)}>修改</LinkButton>
               <Divider type="vertical" />
-              <Popconfirm
+              <LinkButton onClick={() => this.confirmDelete(tag._id)}>删除</LinkButton>
+              {/* <Popconfirm
                 title="确定删除此标签?"
                 onConfirm={() => this.deleteTag(tag._id)}
                 okText="是"
                 cancelText="否"
               >
                 <LinkButton>删除</LinkButton>
-              </Popconfirm>
+              </Popconfirm> */}
             </span>
           )
         }
@@ -207,7 +209,7 @@ export default class Tag extends Component {
           this.getTags()
 				}
 				else {
-					message.error(result.message)
+					message.error("添加失败" + result.message)
         }
         this.setState({confirmAddLoading: false})
       }
@@ -242,24 +244,39 @@ export default class Tag extends Component {
           this.getTags()
         }
         else if (result.code === 11000) {
-          message.error('tId已存在')
+          message.error('修改失败：tId已存在')
+        } else {
+          message.error('修改失败' + result.message)
         }
         this.setState({confirmUpdateLoading: false})
       }
     })
   }
 
+  confirmDelete = (id) => {
+    let _this = this;
+    confirm({
+      title: '是否删除该tag？',
+      onOk() {
+        _this.deleteTag(id)
+      },
+      onCancel() {},
+    });
+  }
+
   /*
   删除tag
   */
   deleteTag = async (id) => {
+    let hide = message.loading('删除中', 0);
     const result = await reqDeleteTag(id)
     if (result.code===200) {
+      hide();
       message.success("删除成功");
       this.getTags()
     }
     else {
-      message.error(result.message)
+      message.error("删除失败" + result.message)
     }
   }
 

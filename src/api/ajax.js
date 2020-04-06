@@ -12,11 +12,10 @@
 import axios from 'axios'
 import {message} from 'antd'
 import storageUtils from '../../src/utils/storageUtils'
-const {token} = storageUtils.getUser()
-const headers = { token };
 
 export default function ajax(url, data={}, type='GET') {
 
+  const headers = { token: storageUtils.getUser().token };
   return new Promise((resolve, reject) => {
     let promise
     // 1. 执行异步ajax请求
@@ -38,16 +37,9 @@ export default function ajax(url, data={}, type='GET') {
     // 3. 如果失败了, 不调用reject(reason), 而是提示异常信息
     }).catch(error => {
       // reject(error)
-      message.error("请求失败: " + error.response.data.message)
+      // message.error("请求失败: " + error.response.data.message || '')
       resolve(error.response.data)
       // message.error('请求出错了: ' + error.message)
     })
   })
-
-
 }
-
-// 请求登陆接口
-// ajax('/login', {username: 'Tom', passsword: '12345'}, 'POST').then()
-// 添加用户
-// ajax('/manage/user/add', {username: 'Tom', passsword: '12345', phone: '13712341234'}, 'POST').then()

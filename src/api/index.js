@@ -7,25 +7,25 @@ const BASE = ''
 /*
 json请求的接口请求函数
  */
-export const reqWeather = (city) => {
+// export const reqWeather = (city) => {
 
-  return new Promise((resolve, reject) => {
-    const url = `http://api.map.baidu.com/telematics/v3/weather?location=${city}&output=json&ak=3p49MVra6urFRGOT9s8UBWr2`
-    // 发送jsonp请求
-    jsonp(url, {}, (err, data) => {
-      // 如果成功了
-      if (!err && data.status==='success') {
-        // 取出需要的数据
-        const {dayPictureUrl, weather} = data.results[0].weather_data[0]
-        resolve({dayPictureUrl, weather})
-      } else {
-        // 如果失败了
-        message.error('获取天气信息失败!')
-      }
+//   return new Promise((resolve, reject) => {
+//     const url = `http://api.map.baidu.com/telematics/v3/weather?location=${city}&output=json&ak=3p49MVra6urFRGOT9s8UBWr2`
+//     // 发送jsonp请求
+//     jsonp(url, {}, (err, data) => {
+//       // 如果成功了
+//       if (!err && data.status==='success') {
+//         // 取出需要的数据
+//         const {dayPictureUrl, weather} = data.results[0].weather_data[0]
+//         resolve({dayPictureUrl, weather})
+//       } else {
+//         // 如果失败了
+//         message.error('获取天气信息失败!')
+//       }
 
-    })
-  })
-}
+//     })
+//   })
+// }
 // reqWeather('北京')
 /*
 jsonp解决ajax跨域的原理
@@ -43,9 +43,10 @@ jsonp解决ajax跨域的原理
 
 
 
-/* 我们的api */
 
-/* account类api */
+/*
+   account类api
+*/
 
 // 管理员登录
 export const reqAdminLogin = (username, password) => ajax(BASE + '/admin/account/login', {username, password}, 'POST')
@@ -65,7 +66,9 @@ export const reqUserGetBackPassword = (username, email, password) => ajax(BASE +
 // 用户修改密码
 export const reqUserUpdatePassword = (username, oldPassword, newPassword) => ajax(BASE + '/account/updatePassword', {username, oldPassword, newPassword}, 'POST')
 
-/* anchor类api */
+/*
+   anchor类api
+*/
 
 //admin获得anchor
 export const reqAnchors = () => ajax(BASE + '/admin/anchor')
@@ -79,7 +82,12 @@ export const reqUpdateAnchor = (id, aId, x, y, A, N) => ajax(BASE + '/admin/anch
 //admin修改anchor
 export const reqDeleteAnchor = (id) => ajax(BASE + '/admin/anchor', {id}, 'DELETE')
 
-/* tag类api */
+//admin获得anchor
+export const reqUserAnchors = () => ajax(BASE + '/anchor')
+
+/*
+   tag类api
+*/
 
 //admin获得tag
 export const reqTags = () => ajax(BASE + '/admin/tag')
@@ -96,7 +104,22 @@ export const reqUpdateTag = (id, tId, description) => ajax(BASE + '/admin/tag', 
 //admin删除tag
 export const reqDeleteTag = (id) => ajax(BASE + '/admin/tag', {id}, 'DELETE')
 
-/* user类api */
+//admin获得tag
+export const reqUserTags = () => ajax(BASE + '/tag')
+
+//admin添加tag
+export const reqUserAddTag = (tId, description) => ajax(BASE + '/tag', {tId, description}, 'POST')
+
+//admin更新tag
+export const reqUserUpdateTag = (id, tId, description) => ajax(BASE + '/tag', {id, tId, description}, 'PUT')
+
+//admin删除tag
+export const reqUserDeleteTag = (id) => ajax(BASE + '/tag', {id}, 'DELETE')
+
+
+/*
+   user类api
+*/
 
 //admin获得user
 export const reqUsers = () => ajax(BASE + '/admin/user')

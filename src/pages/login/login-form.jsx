@@ -2,10 +2,8 @@ import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
 import { Form, Icon, Input, Radio, Row, Col, message, Button } from 'antd'
 import LinkButton from '../../components/link-button'
-import memoryUtils from '../../utils/memoryUtils'
 import storageUtils from '../../utils/storageUtils'
 import { reqAdminLogin, reqUserLogin} from '../../api'
-
 
 const randomNum = (min, max) => {
   return Math.floor(Math.random() * (max - min) + min);
@@ -61,10 +59,11 @@ class LoginForm extends Component {
             const user = {
               username: result.username,
               token: result.token,
-              level: "admin"
+              level: "admin",
+              id: result.id
             };
-            memoryUtils.user = user; // 保存在内存中
-            memoryUtils.login_type = "admin_user";
+            console.log(result.token);
+            // token = result.token; // 保存在内存中
             storageUtils.saveUser(user); // 保存到local中
 
             // 跳转到管理界面 (不需要再回退回到登陆)
@@ -89,10 +88,10 @@ class LoginForm extends Component {
             const user = {
               username: result.username,
               token: result.token,
-              level: "user"
+              level: "user",
+              id: result.id
             };
-            memoryUtils.user = user; // 保存在内存中
-            memoryUtils.login_type = "login_user";
+            // token = result.token; // 保存在内存中
             storageUtils.saveUser(user); // 保存到local中
 
             // 跳转到管理界面 (不需要再回退回到登陆)

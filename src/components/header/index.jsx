@@ -3,10 +3,9 @@ import {withRouter, Link} from 'react-router-dom'
 import { Modal, Icon, Dropdown, Menu, Avatar, message } from 'antd'
 
 import LinkButton from '../link-button'
-import { reqWeather, reqUserUpdatePassword } from '../../api'
+import { reqUserUpdatePassword } from '../../api'
 import menuList from '../../config/menuConfig'
 import {formateDate} from '../../utils/dateUtils'
-import memoryUtils from '../../utils/memoryUtils'
 import storageUtils from '../../utils/storageUtils'
 import UpdatePasswordForm from './update-password-form'
 import './index.less'
@@ -38,12 +37,12 @@ class Header extends Component {
     }, 1000)
   }
 
-  getWeather = async () => {
-    // 调用接口请求异步获取数据
-    const {dayPictureUrl, weather} = await reqWeather('北京')
-    // 更新状态
-    this.setState({dayPictureUrl, weather})
-  }
+  // getWeather = async () => {
+  //   // 调用接口请求异步获取数据
+  //   const {dayPictureUrl, weather} = await reqWeather('北京')
+  //   // 更新状态
+  //   this.setState({dayPictureUrl, weather})
+  // }
 
   getTitle = () => {
     // 得到当前请求路径
@@ -76,7 +75,6 @@ class Header extends Component {
         console.log('OK', this)
         // 删除保存的user数据
         storageUtils.removeUser()
-        memoryUtils.user = {}
 
         // 跳转到login
         this.props.history.replace('/login')
@@ -104,9 +102,7 @@ class Header extends Component {
 
         if (result.code === 200) {
           // 隐藏确定框
-          this.setState({
-            passwordVisible: 0
-          })
+          this.setState({ passwordVisible: true })
           // 清除输入数据
           this.form.resetFields()
           message.success("修改成功");
@@ -128,7 +124,7 @@ class Header extends Component {
     // 获取当前的时间
     this.getTime()
     // 获取当前天气
-    this.getWeather()
+    // this.getWeather()
   }
   /*
   // 不能这么做: 不会更新显示
@@ -149,7 +145,6 @@ class Header extends Component {
 
     const {currentTime, dayPictureUrl, weather, passwordVisible, confirmPasswordLoading} = this.state
 
-    // const {username, level} = memoryUtils.user
     const {username, level} = storageUtils.getUser()
     // console.log("username",username,level);
 
@@ -157,7 +152,16 @@ class Header extends Component {
       <Menu selectable={false}>
           <MenuItemGroup title="用户中心">
             {/* <Menu.Item key={1} onClick={() => this.toggleInfoVisible(true)}><Icon type="user" />编辑个人信息</Menu.Item> */}
-           { level ==="user" ? (<Menu.Item key={77} onClick={() => this.setState({passwordVisible: true})}><Icon type="edit" />修改密码</Menu.Item>) : null }
+            { level ==="user" ?
+              (
+                <Menu.Item key={1}
+                  onClick={() => this.setState({passwordVisible: true})}
+                >
+                  <Icon type="edit"/>
+                    修改密码
+                  </Menu.Item>
+              ) : null
+            }
             <Menu.Item key={2} onClick={this.logout}><Icon type="logout" />退出登录</Menu.Item>
           </MenuItemGroup>
           {/* <MenuItemGroup title="设置中心"> */}

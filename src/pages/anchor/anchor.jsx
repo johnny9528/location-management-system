@@ -62,7 +62,7 @@ class Anchor extends Component {
   }
 
   getAnchors = async () => {
-    const hide = message.loading('数据加载中', 0)
+    // const hide = message.loading('数据加载中', 0)
     let result = await reqAnchors();
     if (result.code === 200) {
       let anchors = {};
@@ -73,8 +73,8 @@ class Anchor extends Component {
     } else {
       message.error("获取数据失败" + result.message);
     }
-    hide();
-    message.success('数据加载完成');
+    // hide();
+    // message.success('数据加载完成');
   }
 
   initCanvas = () => {
@@ -159,17 +159,21 @@ class Anchor extends Component {
       Object.keys(canvasData.anchor).forEach((id) => {
         this.ctx.beginPath();
         this.ctx.arc(canvasData.anchor[id].x, canvasData.anchor[id].y, TRIGGER_RADIS, 0, Math.PI*2);
-        // 判断鼠标是否在范围内
         if (id !== selectedId) {
+          // 判断鼠标是否在范围内
           if (this.ctx.isPointInPath(x, y)) {
-            canvasData.anchor[id].w = 2 * ANCHOR_W;
-            canvasData.anchor[id].h = 2 * ANCHOR_H;
-            this.draw(canvasData);
-
+            // 只有在变化的时候才会重新画图
+            if (canvasData.anchor[id].w === ANCHOR_W) {
+              canvasData.anchor[id].w = 2 * ANCHOR_W;
+              canvasData.anchor[id].h = 2 * ANCHOR_H;
+              this.draw(canvasData);
+            }
           } else {
-            canvasData.anchor[id].w = ANCHOR_W;
-            canvasData.anchor[id].h = ANCHOR_H;
-            this.draw(canvasData);
+            if (canvasData.anchor[id].w === 2 * ANCHOR_W) {
+              canvasData.anchor[id].w = ANCHOR_W;
+              canvasData.anchor[id].h = ANCHOR_H;
+              this.draw(canvasData);
+            }
           }
         }
       })
@@ -507,8 +511,14 @@ class Anchor extends Component {
 
   componentDidMount = () => {
     this.isMount = true;
-    Promise.resolve(this.getAnchors()).then(() => {
+    this.hide = message.loading('数据加载中', 0);
+    Promise.all([
+      this.getAnchors(),
+    ]).then(() => {
       if (this.isMount) {
+        this.hide();
+        this.hide = null;
+        message.success('数据加载完成');
         this.initCanvas();
         this.listenMouse();
       }
@@ -525,6 +535,10 @@ class Anchor extends Component {
   // 离开页面取消异步操作
   componentWillUnmount = () => {
     this.isMount = false;
+    if (this.hide) {
+      this.hide();
+      message.success('加载取消');
+    }
     this.setState = (state, callback) => {
       return
     }
@@ -540,7 +554,7 @@ class Anchor extends Component {
     const { scaling, canvasWidth } = this.state;
 
     return (
-      <div>
+      <div className='anchor'>
         <div className='map' ref={this.refHandle}>
           {canvasWidth && <canvas id="myCanvas" width={canvasWidth} height="620"></canvas>}
         </div>

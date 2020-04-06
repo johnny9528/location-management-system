@@ -2,8 +2,6 @@ import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
 import { Form, Icon, Input, message, Button } from 'antd'
 import LinkButton from '../../components/link-button'
-// import memoryUtils from '../../utils/memoryUtils'
-// import storageUtils from '../../utils/storageUtils'
 import { reqUserRegister, reqUserGetBackPassword, reqCheckName } from '../../api'
 import debounce from '../../utils/debounce'
 
