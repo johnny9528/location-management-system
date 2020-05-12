@@ -2,16 +2,11 @@ import React, { Component } from 'react'
 import { Form, Icon, Input, Button, message, Tooltip, Modal, Dropdown, Menu } from 'antd'
 import Highlighter from 'react-highlight-words';
 import { reqAddAnchor, reqUpdateAnchor, reqDeleteAnchor } from '../../api'
+
+import { RATIO, ANCHOR_W, ANCHOR_H, } from '../../config/mapConfig'
+
 const Item = Form.Item
 const { confirm } = Modal;
-const REAL_WIDTH = 55;  //地图实际大小
-const REAL_HEIGH = 44;
-const MAP_W = 700; //网页地图大小
-const MAP_H = MAP_W/REAL_WIDTH*REAL_HEIGH;
-const RATIO = MAP_W/REAL_WIDTH; //真实地图与网页地图比值
-const ANCHOR_W = 30; //绘图anchor宽度
-const ANCHOR_H = 30; //绘图anchor高度
-const TRIGGER_RADIS = 15; //触发事件的半径
 
 class DataControl extends Component {
   constructor (props) {

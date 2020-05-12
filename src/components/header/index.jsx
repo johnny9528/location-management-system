@@ -37,13 +37,6 @@ class Header extends Component {
     }, 1000)
   }
 
-  // getWeather = async () => {
-  //   // 调用接口请求异步获取数据
-  //   const {dayPictureUrl, weather} = await reqWeather('北京')
-  //   // 更新状态
-  //   this.setState({dayPictureUrl, weather})
-  // }
-
   getTitle = () => {
     // 得到当前请求路径
     const path = this.props.location.pathname
@@ -123,8 +116,6 @@ class Header extends Component {
   componentDidMount () {
     // 获取当前的时间
     this.getTime()
-    // 获取当前天气
-    // this.getWeather()
   }
   /*
   // 不能这么做: 不会更新显示
@@ -143,7 +134,7 @@ class Header extends Component {
 
   render() {
 
-    const {currentTime, dayPictureUrl, weather, passwordVisible, confirmPasswordLoading} = this.state
+    const { passwordVisible, confirmPasswordLoading} = this.state
 
     const {username, level} = storageUtils.getUser()
     // console.log("username",username,level);

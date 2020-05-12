@@ -1,10 +1,6 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import {
-  Form,
-  Input,
-  Icon
-} from 'antd'
+import { Form, Input } from 'antd'
 
 const Item = Form.Item
 

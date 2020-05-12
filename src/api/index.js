@@ -1,5 +1,5 @@
-import jsonp from 'jsonp'
-import {message} from 'antd'
+// import jsonp from 'jsonp'
+// import {message} from 'antd'
 import ajax from './ajax'
 
 const BASE = ''

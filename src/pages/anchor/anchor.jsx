@@ -10,15 +10,14 @@ import map from '../../assets/images/map.png'
 import anchor from '../../assets/images/anchor.png'
 import notSavedAnchor from '../../assets/images/notSaved.png'
 import DataControl from './data-control'
-
-const REAL_WIDTH = 55;  //地图实际大小
-const REAL_HEIGH = 44;
-const MAP_W = 700; //网页地图大小
-const MAP_H = MAP_W/REAL_WIDTH*REAL_HEIGH;
-const RATIO = MAP_W/REAL_WIDTH; //真实地图与网页地图比值
-const ANCHOR_W = 30; //绘图anchor宽度
-const ANCHOR_H = 30; //绘图anchor高度
-const TRIGGER_RADIS = 15; //触发事件的半径
+import {
+  MAP_W,
+  MAP_H,
+  RATIO,
+  ANCHOR_W,
+  ANCHOR_H,
+  TRIGGER_RADIS,
+} from '../../config/mapConfig'
 
 
 class Anchor extends Component {
@@ -458,7 +457,7 @@ class Anchor extends Component {
       const ro = new ResizeObserver((entries, observer) => {
         // eslint-disable-next-line no-restricted-syntax
         for (const entry of entries) {
-          const { left, top, width, height } = entry.contentRect;
+          const { width } = entry.contentRect;
           // console.log(`Element's size: ${width} x ${height} `);
           this.setState({ canvasWidth: width });
         }

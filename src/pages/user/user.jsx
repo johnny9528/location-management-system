@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Redirect} from "react-router-dom";
-import { Table, Badge, message, Menu, Button, Modal, Card, Icon, Popconfirm, Dropdown, Divider, Tooltip } from "antd";
+import { Table, Badge, message, Button, Modal, Card, Icon, Divider, Tooltip } from "antd";
 // import {formateDate} from "../../utils/dateUtils"
 import LinkButton from "../../components/link-button/index";
 import { reqUsers, reqAddUser, reqUpdateUser, reqDeleteUser } from "../../api/index";
@@ -54,7 +54,7 @@ export default class User extends Component {
       },
       {
         width:'16%',
-        title: "Action",
+        title: "操作",
         render: (user) => {
           return (
             <span>

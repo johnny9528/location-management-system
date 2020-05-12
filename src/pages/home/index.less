@@ -1,0 +1,77 @@
+canvas{
+  display: block;
+  // width: 100%;
+  // height: 100%;
+}
+
+.tag {
+  position: relative;
+
+  .map {
+    background-color: transparent;
+  }
+
+  .map-control {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+
+    div {
+      position: relative;
+      width: 100px;
+      bottom: 1.5px;
+      font-size: 20px;
+      font-weight: 500;
+      color: #000000;
+      text-align: center;
+      margin-left: 5px;
+    }
+
+    .link-button {
+      color: #000000;
+      margin: 0 5px;
+    }
+  }
+
+  .data-control {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 250px;
+
+    .search-add {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+
+      .ant-btn {
+        margin-left: 5px;
+        padding: 0;
+        width: 50px;
+        background: transparent;
+        color: rgba(0, 104, 216, 0.7);
+        border: 0.8px solid rgba(0, 104, 216, 0.7);
+
+        &:hover {
+          color: white;
+          background: rgba(39, 143, 255, 0.7);
+          border: 0;
+        }
+      }
+
+      .link-button {
+        margin: 0px 5px;
+        color: black;
+      }
+    }
+  }
+}
+
+.vsc-initialized {
+  .ant-dropdown-menu-item:hover,
+  .ant-dropdown-menu-submenu-title:hover {
+    background: rgba(255, 255, 255, 1);
+  }
+}

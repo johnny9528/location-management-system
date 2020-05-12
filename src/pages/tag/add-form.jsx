@@ -1,9 +1,9 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import { Form, Input } from 'antd'
+import { Form } from 'antd'
 import AddTagForm from '../../components/Modal/addTagForm'
 
-const Item = Form.Item
+// const Item = Form.Item
 
 class AddForm extends Component {
 
@@ -16,14 +16,17 @@ class AddForm extends Component {
   }
 
   render() {
-    const { getFieldDecorator } = this.props.form
+    // const { getFieldDecorator } = this.props.form
 
-    const formItemLayout = {
-      labelCol: { span: 4 },  // 左侧label的宽度
-      wrapperCol: { span: 15 }, // 右侧包裹的宽度
-    }
+    // const formItemLayout = {
+    //   labelCol: { span: 4 },  // 左侧label的宽度
+    //   wrapperCol: { span: 15 }, // 右侧包裹的宽度
+    // }
     return (
-      <AddTagForm form={this.props.form} />
+      <AddTagForm
+        form={this.props.form}
+        level={this.props.level}
+      />
       // <Form {...formItemLayout}>
       //   <Item label='tag编号'>
       //     {

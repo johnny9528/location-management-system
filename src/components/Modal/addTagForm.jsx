@@ -1,5 +1,5 @@
-import React, {Component} from 'react'
-import { Form, Input, Modal, message } from 'antd'
+import React from 'react'
+import { Form, Input } from 'antd'
 const Item = Form.Item
 
 const AddTagForm = (props) => {

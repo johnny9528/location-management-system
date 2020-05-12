@@ -9,7 +9,6 @@ import {
   Table,
   message,
   Modal,
-  Popconfirm,
   Badge,
   Divider,
   Tooltip
@@ -26,9 +25,6 @@ import UpdateForm from './update-form'
 const Option = Select.Option
 const { confirm } = Modal;
 
-/*
-Product的默认子路由组件
- */
 export default class Tag extends Component {
 
   state = {
@@ -354,35 +350,32 @@ export default class Tag extends Component {
           //   onChange: this.getProducts
           }}
           // onChange={onChange}
-          size={"middle"}
+          // size={"middle"}
         />
-
-      <Modal
-        title="添加用户"
-        visible={showStatus===1}
-        onOk={this.addTag}
-        onCancel={this.handleCancel}
-        confirmLoading={confirmAddLoading}
-      >
-        <AddForm
-          setForm={(form) => {this.form = form}}
-        />
-      </Modal>
-
-      <Modal
-        title="更新用户"
-        visible={showStatus===2}
-        onOk={this.updateTag}
-        onCancel={this.handleCancel}
-        confirmLoading={confirmUpdateLoading}
-      >
-        <UpdateForm
-          tag = {this.tag}
-          setForm={(form) => {this.form = form}}
-        />
-      </Modal>
-
-
+        <Modal
+          title="添加tag"
+          visible={showStatus===1}
+          onOk={this.addTag}
+          onCancel={this.handleCancel}
+          confirmLoading={confirmAddLoading}
+        >
+          <AddForm
+            setForm={(form) => {this.form = form}}
+            level={user.level}
+          />
+        </Modal>
+        <Modal
+          title="更新tag"
+          visible={showStatus===2}
+          onOk={this.updateTag}
+          onCancel={this.handleCancel}
+          confirmLoading={confirmUpdateLoading}
+        >
+          <UpdateForm
+            tag = {this.tag}
+            setForm={(form) => {this.form = form}}
+          />
+        </Modal>
       </Card>
     )
   }

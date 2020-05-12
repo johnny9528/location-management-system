@@ -5,7 +5,6 @@ const menuList = [
     icon: 'home', // 图标名称
     isPublic: true, // 公开的
   },
-
   {
     title:'anchor管理',
     key:'/anchor',
@@ -20,11 +19,6 @@ const menuList = [
     title:'用户管理',
     key:'/user',
     icon:'user',
-  },
-  {
-    title:'测试',
-    key:'/test',
-    icon:'test',
   },
 ]
 

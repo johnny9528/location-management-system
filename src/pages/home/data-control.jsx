@@ -20,7 +20,7 @@ class DataControl extends Component {
   confirmDelete = (id) => {
     let _this = this;
     confirm({
-      title: '是否删除该anchor？',
+      title: '是否删除该tag？',
       onOk() {
         _this.deleteTag(id)
       },
@@ -39,6 +39,7 @@ class DataControl extends Component {
   }
 
   deleteTag = async (id) => {
+    let hide = message.loading('删除中', 0);
     const level = this.props.user.level;
     let result;
     if (level === 'admin') {
@@ -47,6 +48,7 @@ class DataControl extends Component {
       result = await reqUserDeleteTag(id)
     }
     if (result.code===200) {
+      hide();
       message.success("删除成功");
       this.props.getTags()
     }
@@ -57,7 +59,7 @@ class DataControl extends Component {
 
 
   render () {
-    const { selectedRowKeys, tags } = this.props.state;
+    const { selectedRowKeys, tags, tagHistoryCount, tableLoading } = this.props.state;
     const { searchKey, searchVisible, moreVisible } = this.state;
 
     const columns = [
@@ -67,18 +69,23 @@ class DataControl extends Component {
         dataIndex: 'tId',
         key: 'tId',
         render: (text, tag) => {
-          let time = `创建时间: ${tag.createTime} 修改时间: ${tag.updateTime}`;
-          return <Tooltip
-            placement="topLeft"
-            title={time}
-            >
-              <Highlighter
-                highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
-                searchWords={[searchKey]}
-                autoEscape
-                textToHighlight={text}
-              />
-          </Tooltip>
+          return (
+            <Tooltip
+              placement="top"
+              title={
+                <div>
+                  <div>{`创建时间: ${tag.createTime}`}</div>
+                  <div>{`修改时间: ${tag.updateTime}`}</div>
+                </div>
+              }>
+                <Highlighter
+                  highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+                  searchWords={[searchKey]}
+                  autoEscape
+                  textToHighlight={text}
+                />
+            </Tooltip>
+          )
         },
       },
       {
@@ -97,7 +104,7 @@ class DataControl extends Component {
             }
           }
         },
-        render: (text) => <Tooltip placement="topLeft" title={text}>{text}</Tooltip>
+        render: (text) => <Tooltip placement="top" title={text}>{text}</Tooltip>
       },
       {
         // width: '20%',
@@ -146,7 +153,7 @@ class DataControl extends Component {
           <Table
             rowKey='_id'
             bordered={false}
-            loading={searchResult ? false : true }
+            loading={tableLoading}
             pagination={false}
             size={'middle'}
             rowSelection={rowSelection}
@@ -184,8 +191,8 @@ class DataControl extends Component {
               <InputNumber size="small"
                 min={0}
                 max={8}
-                defaultValue={3}
-                onChange={this.props.tagHistoryCount}
+                defaultValue={tagHistoryCount}
+                onChange={this.props.changeTagHistoryCount}
                 style={{width: 50}}
               />
             </Col>
@@ -203,6 +210,7 @@ class DataControl extends Component {
           placement="bottomCenter"
           onVisibleChange={this.handleSearchVisibleChange}
           visible={searchVisible}
+          overlayClassName='dropdown-overlay'
         >
           <Input
             placeholder="根据aId查询"

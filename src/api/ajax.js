@@ -10,7 +10,7 @@
  */
 
 import axios from 'axios'
-import {message} from 'antd'
+// import {message} from 'antd'
 import storageUtils from '../../src/utils/storageUtils'
 
 export default function ajax(url, data={}, type='GET') {

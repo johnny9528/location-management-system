@@ -4,13 +4,11 @@ import { Layout } from "antd";
 import storageUtils from '../../utils/storageUtils'
 import LeftNav from "../../components/left-nav";
 import Header from "../../components/header";
-// import Home from '../home/home'
-import Home from "../home/home_copy";
+import Home from '../home/home'
 import Anchor from "../anchor/anchor";
 import Tag from "../tag/tag";
 import User from "../user/user";
 import NotFound from "../not-found/not-found";
-import Test from "../test/test"
 
 const { Footer, Sider, Content } = Layout;
 
@@ -20,21 +18,17 @@ const { Footer, Sider, Content } = Layout;
 export default class Admin extends Component {
   render() {
     const user = storageUtils.getUser()
-
     if(Object.keys(user).length === 0) {
       console.log("redirect");
       return <Redirect to='/login'/>
     }
-
     return (
       <Layout style={{ minHeight: "100%" }}>
         <Header>Header</Header>
-
         <Layout>
           {user.level === "admin" ? (
             <Sider
               style={{
-                // height: "100vh-80px",
                 backgroundColor: "#fff"
               }}
             >
@@ -49,7 +43,6 @@ export default class Admin extends Component {
                 <Route path="/anchor" component={Anchor} />
                 <Route path="/tag" component={Tag} />
                 <Route path="/user" component={User} />
-                <Route path="/test" component={Test} />
                 <Route component={NotFound} />
               </Switch>
             </Content>
