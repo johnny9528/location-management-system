@@ -13,7 +13,7 @@ const Item = Form.Item
 class UpdateForm extends Component {
 
   static propTypes = {
-    tag: PropTypes.string.isRequired,
+    tag: PropTypes.object.isRequired,
     setForm: PropTypes.func.isRequired
   }
 

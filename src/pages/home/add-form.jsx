@@ -1,6 +1,8 @@
 import React, {Component} from 'react'
-import { reqAddTag, reqUserAddTag } from '../../api'
 import { Form, Modal,  message } from 'antd'
+import { connect } from 'react-redux'
+
+import { reqAddTag, reqUserAddTag } from '../../api'
 import AddTagForm from '../../components/Modal/addTagForm'
 
 class AddForm extends Component {
@@ -64,4 +66,7 @@ class AddForm extends Component {
   }
 }
 
-export default Form.create()(AddForm)
+export default connect(
+  state => ({user: state.user, anchors: state.anchors, tags: state.tags}),
+  // {setAnchors, setTags}
+)(Form.create()(AddForm))

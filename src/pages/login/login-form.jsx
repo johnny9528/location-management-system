@@ -1,9 +1,12 @@
 import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
 import { Form, Icon, Input, Radio, Row, Col, message, Button } from 'antd'
+import { connect } from 'react-redux'
+
+import { reqAdminLogin, reqUserLogin} from '../../api'
 import LinkButton from '../../components/link-button'
 import storageUtils from '../../utils/storageUtils'
-import { reqAdminLogin, reqUserLogin} from '../../api'
+import { setUser } from '../../redux/actions'
 
 const randomNum = (min, max) => {
   return Math.floor(Math.random() * (max - min) + min);
@@ -62,8 +65,8 @@ class LoginForm extends Component {
               level: "admin",
               id: result.id
             };
-            console.log(result.token);
-            // token = result.token; // 保存在内存中
+
+            this.props.setUser(user); // 保存到store中
             storageUtils.saveUser(user); // 保存到local中
 
             // 跳转到管理界面 (不需要再回退回到登陆)
@@ -91,7 +94,8 @@ class LoginForm extends Component {
               level: "user",
               id: result.id
             };
-            // token = result.token; // 保存在内存中
+
+            this.props.setUser(user); // 保存到store中
             storageUtils.saveUser(user); // 保存到local中
 
             // 跳转到管理界面 (不需要再回退回到登陆)
@@ -230,7 +234,7 @@ class LoginForm extends Component {
                     { required: true, whitespace: true, message: "验证码必须输入" },
                     {
                       validator: (rule, value, callback) => {
-                        console.log("validate code: "+code);
+                        // console.log("validate code: "+code);
                         if (code.toUpperCase() !== value.toUpperCase()) {
                           callback("验证码错误");
                         }
@@ -306,5 +310,7 @@ class LoginForm extends Component {
   }
 }
 
-
-export default withRouter(Form.create()(LoginForm))
+export default connect(
+  state => ({user: state.user}),
+  {setUser}
+)(withRouter(Form.create()(LoginForm)))

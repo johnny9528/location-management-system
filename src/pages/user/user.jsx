@@ -1,19 +1,19 @@
 import React, { Component } from "react";
 import { Redirect} from "react-router-dom";
+import { connect } from 'react-redux'
 import { Table, Badge, message, Button, Modal, Card, Icon, Divider, Tooltip } from "antd";
-// import {formateDate} from "../../utils/dateUtils"
+
 import LinkButton from "../../components/link-button/index";
 import { reqUsers, reqAddUser, reqUpdateUser, reqDeleteUser } from "../../api/index";
-import storageUtils from '../../utils/storageUtils'
+// import storageUtils from '../../utils/storageUtils'
 import AddForm from './add-form'
 import UpdateForm from './update-form'
+import { getUsers } from "../../redux/actions";
 
 const { confirm } = Modal;
 
-export default class User extends Component {
+class User extends Component {
   state = {
-    // users: [], // 所有用户列表
-    // tags: [], // 所有标签列表
     data: [],
     userLevel: 1,
     isShow: false, // 是否显示确认框
@@ -61,14 +61,6 @@ export default class User extends Component {
               <LinkButton onClick={() => this.showUpdate(user)}>修改</LinkButton>
               <Divider type="vertical" />
               <LinkButton onClick={() => this.confirmDelete(user._id)}>删除</LinkButton>
-              {/* <Popconfirm
-                title="是否删除此用户所有数据?"
-                onConfirm={() => this.deleteUser(user._id)}
-                okText="是"
-                cancelText="否"
-              >
-                <LinkButton>删除</LinkButton>
-              </Popconfirm> */}
             </span>
           );
         }
@@ -129,29 +121,47 @@ export default class User extends Component {
 
   getUsers = async () => {
     this.setState({loading: true}) // 显示loading
+
+    // 如果store中有users则直接使用
+    if (this.props.users.length > 0) {
+      // console.log("user store "+this.props.users);
+      const data = this.nestTable(this.props.users)
+      console.log(data)
+      this.setState({ data })
+      this.setState({loading: false})
+      return;
+    }
+
     const result = await reqUsers();
     this.setState({loading: false}) // 隐藏loading
 
     if (result.code === 200) {
-      // 取出分页数据, 更新状态, 显示分页列表
-      let data = [...result.users];
-      data.forEach((item, index) => {
-        item.tags = (
-          <Table
-            rowKey='_id'
-            className="components-table-demo-nested"
-            columns={this.tagCol}
-            dataSource={result.users[index].tags}
-            pagination={false}
-            size='middle'
-          />
-        );
-      });
+      const data = this.nestTable(result.users)
       this.setState({ data });
     } else {
       message.error("获取数据失败");
     }
   };
+
+  //嵌套表格数据
+  nestTable = (users) => {
+    let data = [...users];
+    data.forEach((item, index) => {
+      if (Array.isArray(users[index].tags)) {
+        item.tags = (
+          <Table
+            rowKey='_id'
+            className="components-table-demo-nested"
+            columns={this.tagCol}
+            dataSource={users[index].tags}
+            pagination={false}
+            size='middle'
+          />
+        );
+      }
+    });
+    return data
+  }
 
   /*
   显示添加的确认框
@@ -204,7 +214,8 @@ export default class User extends Component {
             showStatus: 0
           });
           message.success("添加成功");
-          this.getUsers();
+          this.props.getUsers()
+          // this.getUsers();
         } else {
           message.error("添加失败" + result.message);
         }
@@ -233,8 +244,8 @@ export default class User extends Component {
           // 清除输入数据
           this.form.resetFields()
           message.success("修改成功");
-          // 重新显示列表
-          this.getUsers()
+          this.props.getUsers()
+          // this.getUsers()
         }
         else if (result.code === 11000) {
           message.error('修改失败：用户名已存在')
@@ -261,7 +272,8 @@ export default class User extends Component {
     if (result.code===200) {
       hide();
       message.success("删除成功");
-      this.getUsers()
+      this.props.getUsers()
+      // this.getUsers()
     }
     else {
       message.error("删除失败" + result.message)
@@ -282,36 +294,25 @@ export default class User extends Component {
   }
 
   componentDidMount() {
-    this.getUsers();
+    // 使用redux管理后不需要this.getUsers()
+    // this.getUsers();
   }
 
   render() {
-    const user = storageUtils.getUser()
+    const user = this.props.user
     if(user.level !== "admin") {
       message.warn("无权访问")
       return <Redirect to='/login'/>
     }
 
-    const { data, showStatus, loading, expandedRowKeys, confirmAddLoading, confirmUpdateLoading } = this.state;
-
-    // const title = (
-    //   <span>
-    //     <Radio.Group
-    //       onChange={(e) => this.setState({ userLevel: e.target.value })}
-    //       value={this.state.userLevel}
-    //     >
-    //       <Radio value={1}>普通用户</Radio>
-    //       <Radio value={2}>管理员</Radio>
-    //     </Radio.Group>
-    //   </span>
-    // );
+    const { showStatus, loading, expandedRowKeys, confirmAddLoading, confirmUpdateLoading } = this.state;
+    const users = this.props.users;
+    const data = this.nestTable(users)
 
     const extra = (
       <Button type='primary' onClick={() => this.showAdd()}>
-      {/* <Icon type='plus'/>
-      添加 */}
         <Icon type="user-add" />
-    </Button>
+      </Button>
     )
 
     return (
@@ -356,3 +357,9 @@ export default class User extends Component {
     );
   }
 }
+
+export default connect(
+  //user为当前登录用户，users是管理员可以管理的用户
+  state => ({user: state.user, users: state.users}),
+  {getUsers}
+)(User)

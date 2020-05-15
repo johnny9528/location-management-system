@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import { Redirect} from "react-router-dom";
 import ResizeObserver from 'resize-observer-polyfill';
+import { connect } from 'react-redux'
+import { Icon, message } from 'antd'
+
 import './index.less'
-import { Form, Icon, message } from 'antd'
-import storageUtils from '../../utils/storageUtils'
 import LinkButton from '../../components/link-button'
 import { reqAnchors } from '../../api'
 import map from '../../assets/images/map.png'
@@ -18,7 +19,6 @@ import {
   ANCHOR_H,
   TRIGGER_RADIS,
 } from '../../config/mapConfig'
-
 
 class Anchor extends Component {
   constructor(props) {
@@ -55,13 +55,18 @@ class Anchor extends Component {
       */
       scaling: 1, // 缩放比例
       showAdd: false,
-      canvasWidth: 0,
-      canvasHeight: 0,
+      canvasWidth: 1200,
+      // canvasHeight: 0,
     }
   }
 
   getAnchors = async () => {
-    // const hide = message.loading('数据加载中', 0)
+    // 如果store中有anchors则直接使用
+    if (Object.keys(this.props.anchors).length > 0) {
+      this.setState({ anchors: this.props.anchors })
+      return Promise.resolve();
+    }
+
     let result = await reqAnchors();
     if (result.code === 200) {
       let anchors = {};
@@ -72,8 +77,6 @@ class Anchor extends Component {
     } else {
       message.error("获取数据失败" + result.message);
     }
-    // hide();
-    // message.success('数据加载完成');
   }
 
   initCanvas = () => {
@@ -101,16 +104,17 @@ class Anchor extends Component {
     });
 
     //记录原始anchor坐标，用于绘制移动后原位置图和虚线图
+    // canvasData.originAnchorCanvas = JSON.parse(JSON.stringify(canvasData.anchor));
     this.originAnchorCanvas = JSON.parse(JSON.stringify(canvasData.anchor));
 
     // 画出地图和所有anchor
-    this.img = new Image();
+    this.img_map = new Image();
     this.img_anchor = new Image();
     this.img_notsaved_anchor = new Image();
-    this.img.src = map;
-    this.img.onload = () => {
+    this.img_map.src = map;
+    this.img_map.onload = () => {
       this.ctx.drawImage(
-        this.img,
+        this.img_map,
         canvasData.map.x - canvasData.map.w/2,
         canvasData.map.y - canvasData.map.h/2,
         canvasData.map.w,
@@ -140,22 +144,22 @@ class Anchor extends Component {
 
   // canvas监听事件
   listenMouse = () => {
-    let x, y; // 当前鼠标位置
-    // this.scaling = 1; // 缩放比例
-    // let clickedId = '';
+    let x, y; // 当前鼠标位置变量
     let lastClickTime = 0;
     let lastClickLocation = { x: 0, y: 0 };
     let canvasBox; // 获取canvas的包围盒对象
 
     // 移动靠近anchor时 放大图标
     const highlightAnchor = (e) => {
-      const { canvasData, selectedId } = this.state;
+      let { canvasData } = this.state;
+      const { selectedId } = this.state;
       // 获取canvas的包围盒对象
       canvasBox = this.canvas.getBoundingClientRect();
       x = e.clientX - canvasBox.left;
       y = e.clientY - canvasBox.top;
 
       Object.keys(canvasData.anchor).forEach((id) => {
+        // 画判定范围
         this.ctx.beginPath();
         this.ctx.arc(canvasData.anchor[id].x, canvasData.anchor[id].y, TRIGGER_RADIS, 0, Math.PI*2);
         if (id !== selectedId) {
@@ -182,7 +186,12 @@ class Anchor extends Component {
 
     // 鼠标点击事件
     this.canvas.onmousedown =  (e) => {
-      const { canvasData, scaling, anchors, selectedId } = this.state;
+      const { scaling, selectedId } = this.state;
+
+      // 深拷贝
+      let anchors = JSON.parse(JSON.stringify(this.state.anchors));
+      let canvasData = JSON.parse(JSON.stringify(this.state.canvasData));
+
       let isInAnchor = false;
 
       // 获取canvas的包围盒对象
@@ -211,7 +220,7 @@ class Anchor extends Component {
           canvasData.anchor[id].h = 2 * ANCHOR_H;
 
           this.draw(canvasData);
-          this.props.form.resetFields(['x', 'y']);
+          this.form.resetFields(['x', 'y']);
           this.setState({ canvasData, selectedId: id, showAdd: canvasData.anchor[id].notSavedType === 'add' ? true : false });
 
           // 记录移动前数据
@@ -242,7 +251,7 @@ class Anchor extends Component {
 
       if (!isInAnchor) {
         // 点击地图
-        // this.props.form.resetFields();
+        // this.form.resetFields();
 
         // 双击地图时所有anchor还原大小
         let clickTime = new Date().getTime();
@@ -303,6 +312,7 @@ class Anchor extends Component {
     //缩放
     this.canvas.onmousewheel = (e) => {
       const { canvasData, scaling } = this.state;
+
       let scaling_after = scaling;
       if (e.wheelDelta > 0) {
         scaling_after += 0.1;
@@ -334,6 +344,7 @@ class Anchor extends Component {
     });
     return canvasData;
   }
+
   // 缩放修改坐标
   zoom = (canvasData, scaling) => {
     let canvasData_before = JSON.parse(JSON.stringify(canvasData));
@@ -354,12 +365,12 @@ class Anchor extends Component {
 
   // 画地图和所有anchor
   draw = (canvasData) => {
-    console.log('draw');
+    // console.log('draw');
     const { map, anchor } = canvasData;
     // 清空canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.drawImage(
-      this.img,
+      this.img_map,
       map.x - map.w/2,
       map.y - map.h/2,
       map.w,
@@ -466,7 +477,7 @@ class Anchor extends Component {
     }
   }
 
-  // 数据变化时重新绘图,并且setstate相关值
+  // 对draw()二次封装，数据变化时重新绘图，并且setstate相关值，供子组件修改父组件状态使用
   reDraw = (data) => {
     this.draw(data.canvasData);
     this.setState({...data});
@@ -510,14 +521,21 @@ class Anchor extends Component {
 
   componentDidMount = () => {
     this.isMount = true;
-    this.hide = message.loading('数据加载中', 0);
-    Promise.all([
+
+    //有数据时不显示加载信息
+    const existedData = Object.keys(this.props.anchors);
+    if (!existedData) {
+      this.hide = message.loading('数据加载中', 0);
+    }
+    Promise.resolve(
       this.getAnchors(),
-    ]).then(() => {
+    ).then(() => {
       if (this.isMount) {
-        this.hide();
-        this.hide = null;
-        message.success('数据加载完成');
+        if (!existedData) {
+          this.hide();
+          this.hide = null;
+          message.success('数据加载完成');
+        }
         this.initCanvas();
         this.listenMouse();
       }
@@ -544,14 +562,14 @@ class Anchor extends Component {
   }
 
   render = () => {
-    const user = storageUtils.getUser()
+    const user = this.props.user
+    // const user = storageUtils.getUser()
     if(user.level !== "admin") {
       message.warn("无权访问")
       return <Redirect to='/login'/>
     }
 
     const { scaling, canvasWidth } = this.state;
-
     return (
       <div className='anchor'>
         <div className='map' ref={this.refHandle}>
@@ -578,10 +596,13 @@ class Anchor extends Component {
           originAnchorCanvas={this.originAnchorCanvas}
           canvas={this.canvas}
           move={this.move}
+          setForm={(form) => {this.form = form}}
         />
       </div>
     )
   }
 }
 
-export default Form.create()(Anchor)
+export default connect(
+  state => ({user: state.user, anchors: state.anchors})
+)(Anchor)

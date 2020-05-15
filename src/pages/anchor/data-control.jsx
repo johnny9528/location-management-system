@@ -1,14 +1,21 @@
 import React, { Component } from 'react'
 import { Form, Icon, Input, Button, message, Tooltip, Modal, Dropdown, Menu } from 'antd'
 import Highlighter from 'react-highlight-words';
-import { reqAddAnchor, reqUpdateAnchor, reqDeleteAnchor } from '../../api'
+import { connect } from 'react-redux'
+import PropTypes from 'prop-types'
 
+import { reqAddAnchor, reqUpdateAnchor, reqDeleteAnchor } from '../../api'
 import { RATIO, ANCHOR_W, ANCHOR_H, } from '../../config/mapConfig'
+import { getAnchors } from "../../redux/actions";
 
 const Item = Form.Item
 const { confirm } = Modal;
 
 class DataControl extends Component {
+  static propTypes = {
+    setForm: PropTypes.func.isRequired, // 用来传递form对象的函数
+  }
+
   constructor (props) {
     super(props);
     this.state = {
@@ -17,6 +24,10 @@ class DataControl extends Component {
       deleteLoading: false, //修改按钮loading状态
       searchKey: '', //搜索关键词
     };
+  }
+
+  componentWillMount () {
+    this.props.setForm(this.props.form)
   }
 
   // 搜索时选中的anchor移动到中心
@@ -39,7 +50,12 @@ class DataControl extends Component {
 
   // x y 输入框变化时实时更新map
   InputOnChange = (label) => (event) => {
-    const { selectedId, canvasData, anchors, scaling } = this.props.state;
+    const { selectedId, scaling } = this.props.state;
+
+    // 深拷贝
+    let anchors = JSON.parse(JSON.stringify(this.state.anchors));
+    let canvasData = JSON.parse(JSON.stringify(this.state.canvasData));
+
     if (selectedId && event.target.value && !isNaN(event.target.value)) {
       if (label === 'x') {
         anchors[selectedId].coords[0] = parseFloat(event.target.value);
@@ -65,7 +81,11 @@ class DataControl extends Component {
 
   // 点击添加anchor后创建新anchor
   clickAdd = () => {
-    const { canvasData, anchors, scaling } = this.props.state;
+    const { scaling } = this.props.state;
+    // 深拷贝
+    let anchors = JSON.parse(JSON.stringify(this.props.state.anchors));
+    let canvasData = JSON.parse(JSON.stringify(this.props.state.canvasData));
+
     const canvas = this.props.canvas;
     // 取消所有anchor图标大小
     Object.keys(canvasData.anchor).forEach((id) => {
@@ -100,14 +120,21 @@ class DataControl extends Component {
 
   // 取消添加anchor，同时删除临时anchor
   cancelAdd = () => {
-    const { anchors, canvasData, selectedId } = this.props.state;
+    const { selectedId } = this.props.state;
+    // 深拷贝
+    let anchors = JSON.parse(JSON.stringify(this.props.state.anchors));
+    let canvasData = JSON.parse(JSON.stringify(this.props.state.canvasData));
     delete anchors[selectedId];
     delete canvasData.anchor[selectedId];
     this.props.reDraw({ canvasData, anchors, selectedId: '', showAdd: false});
   }
 
   addAnchor = async () => {
-    const { canvasData, anchors, selectedId, scaling } = this.props.state;
+    const { selectedId, scaling } = this.props.state;
+    // 深拷贝
+    let anchors = JSON.parse(JSON.stringify(this.props.state.anchors));
+    let canvasData = JSON.parse(JSON.stringify(this.props.state.canvasData));
+
     this.props.form.validateFields(async (err, values) => {
       if(!err) {
         this.setState({addLoading: true});
@@ -135,6 +162,7 @@ class DataControl extends Component {
             h: ANCHOR_H,
           }
           this.props.reDraw({ canvasData, anchors, selectedId: id})
+          this.props.getAnchors(this.props.user.level)
           message.success("添加成功");
         }
         else {
@@ -146,7 +174,9 @@ class DataControl extends Component {
   }
 
   updateAnchor = (id) => {
-    const { canvasData, anchors } = this.props.state;
+    let anchors = JSON.parse(JSON.stringify(this.props.state.anchors));
+    let canvasData = JSON.parse(JSON.stringify(this.props.state.canvasData));
+
     this.props.form.validateFields(async (err, values) => {
       if(!err) {
         this.setState({updateLoading: true});
@@ -164,8 +194,7 @@ class DataControl extends Component {
           this.props.originAnchorCanvas[id].x = canvasData.anchor[id].x;
           this.props.originAnchorCanvas[id].y = canvasData.anchor[id].y;
           this.props.reDraw({ anchors, canvasData });
-          // this.draw(canvasData);
-          // this.setState({ anchors, canvasData });
+          this.props.getAnchors(this.props.user.level)
           message.success("修改成功");
         }
         else {
@@ -178,7 +207,10 @@ class DataControl extends Component {
 
   // 撤销移动
   cancelMove = () => {
-    const { canvasData, anchors, selectedId, scaling } = this.props.state;
+    const { selectedId, scaling } = this.props.state;
+    let anchors = JSON.parse(JSON.stringify(this.props.state.anchors));
+    let canvasData = JSON.parse(JSON.stringify(this.props.state.canvasData));
+
     canvasData.anchor[selectedId].x = this.props.originAnchorCanvas[selectedId].x;
     canvasData.anchor[selectedId].y = this.props.originAnchorCanvas[selectedId].y;
     canvasData.anchor[selectedId].notSaved = false;
@@ -201,7 +233,9 @@ class DataControl extends Component {
   }
 
   deleteAnchor = async (id) => {
-    const { canvasData, anchors } = this.props.state;
+    let anchors = JSON.parse(JSON.stringify(this.props.state.anchors));
+    let canvasData = JSON.parse(JSON.stringify(this.props.state.canvasData));
+
     this.setState({deleteLoading: true})
     this.props.form.resetFields();
     const result = await reqDeleteAnchor(id)
@@ -210,6 +244,7 @@ class DataControl extends Component {
       delete anchors[id];
       delete this.props.originAnchorCanvas[id];
       this.props.reDraw({ canvasData, anchors, selectedId: ''})
+      this.props.getAnchors(this.props.user.level)
       message.success("删除成功");
     }
     else {
@@ -388,5 +423,8 @@ class DataControl extends Component {
   }
 }
 
-export default Form.create()(DataControl);
+export default connect(
+  state => ({user: state.user}),
+  {getAnchors}
+)(Form.create()(DataControl));
 

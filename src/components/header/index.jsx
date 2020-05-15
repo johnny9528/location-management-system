@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import {withRouter, Link} from 'react-router-dom'
 import { Modal, Icon, Dropdown, Menu, Avatar, message } from 'antd'
+import { connect } from 'react-redux'
 
 import LinkButton from '../link-button'
 import { reqUserUpdatePassword } from '../../api'
@@ -11,6 +12,7 @@ import UpdatePasswordForm from './update-password-form'
 import './index.less'
 import logo from '../../assets/images/logo.png'
 import defaultAva from '../../assets/images/default.png'
+import { logout } from '../../redux/actions'
 
 
 // const SubMenu = Menu.SubMenu;
@@ -66,8 +68,8 @@ class Header extends Component {
       content: '确定退出吗?',
       onOk: () => {
         console.log('OK', this)
-        // 删除保存的user数据
-        storageUtils.removeUser()
+        // 从store中删除保存的user数据
+        this.props.logout()
 
         // 跳转到login
         this.props.history.replace('/login')
@@ -89,8 +91,8 @@ class Header extends Component {
       if(!err) {
         this.setState({confirmPasswordLoading: true})
         const {oldPassword, newPassword} = values
-        const { username } = storageUtils.getUser()
-        console.log(username, oldPassword, newPassword);
+        // const { username } = storageUtils.getUser()
+        const { username } = this.props.user
         let result = await reqUserUpdatePassword(username, oldPassword, newPassword)
 
         if (result.code === 200) {
@@ -136,7 +138,8 @@ class Header extends Component {
 
     const { passwordVisible, confirmPasswordLoading} = this.state
 
-    const {username, level} = storageUtils.getUser()
+    // const {username, level} = storageUtils.getUser()
+    const {username, level} = this.props.user
     // console.log("username",username,level);
 
     const menu = (
@@ -201,4 +204,7 @@ class Header extends Component {
   }
 }
 
-export default withRouter(Header)
+export default connect(
+  state => ({user: state.user}),
+  {logout}
+)(withRouter(Header))

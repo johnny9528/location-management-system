@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
 import { Redirect} from "react-router-dom";
+import { connect } from 'react-redux'
 import {
   Card,
   Select,
@@ -17,20 +18,18 @@ import {
 import LinkButton from '../../components/link-button'
 import {reqTags, reqAddTag, reqUpdateTag, reqDeleteTag, reqSearchTags} from '../../api'
 import {PAGE_SIZE} from '../../utils/constants'
-import storageUtils from '../../utils/storageUtils'
-
+import { getTags } from "../../redux/actions";
+// import storageUtils from '../../utils/storageUtils'
 import AddForm from './add-form'
 import UpdateForm from './update-form'
 
 const Option = Select.Option
 const { confirm } = Modal;
 
-export default class Tag extends Component {
+class Tag extends Component {
 
   state = {
     tags: [],
-//     total: 0, // 商品的总数量
-//     products: [], // 商品的数组
     loading: false, // 是否正在加载中
     searchKey: '', // 搜索的关键字
     searchType: 'searchTId', // 根据哪个字段搜索
@@ -107,18 +106,9 @@ export default class Tag extends Component {
         render: (tag) => {
           return (
             <span>
-              {/*将product对象使用state传递给目标路由组件*/}
               <LinkButton onClick={() => this.showUpdate(tag)}>修改</LinkButton>
               <Divider type="vertical" />
               <LinkButton onClick={() => this.confirmDelete(tag._id)}>删除</LinkButton>
-              {/* <Popconfirm
-                title="确定删除此标签?"
-                onConfirm={() => this.deleteTag(tag._id)}
-                okText="是"
-                cancelText="否"
-              >
-                <LinkButton>删除</LinkButton>
-              </Popconfirm> */}
             </span>
           )
         }
@@ -134,20 +124,22 @@ export default class Tag extends Component {
     this.setState({loading: true}) // 显示loading
 
     const {searchKey, searchType} = this.state
-    // 如果搜索关键字有值, 说明我们要做搜索分页
     let result
     if (searchKey) {
       result = await reqSearchTags(searchType, searchKey)
     } else { // 一般分页请求
+      // 如果store中有tags则直接使用
+      if (this.props.tags.length > 0) {
+        this.setState({ tags: this.props.tags })
+        this.setState({ loading: false }) // 隐藏loading
+        return;
+      }
       result = await reqTags();
     }
-		// const result = await reqTags();
     this.setState({loading: false}) // 隐藏loading
     if (result.code === 200) {
       // 取出分页数据, 更新状态, 显示分页列表
-      this.setState({
-        tags: result.tag
-      })
+      this.setState({tags: result.tag})
     } else {
       message.error("获取数据失败");
     }
@@ -202,7 +194,8 @@ export default class Tag extends Component {
           // 隐藏确认框
           this.setState({showStatus: 0})
           message.success("添加成功");
-          this.getTags()
+          this.props.getTags(this.props.user.level)
+          // this.getTags()
 				}
 				else {
 					message.error("添加失败" + result.message)
@@ -237,7 +230,8 @@ export default class Tag extends Component {
           this.form.resetFields()
           // 重新显示列表
           message.success("修改成功");
-          this.getTags()
+          this.props.getTags(this.props.user.level)
+          // this.getTags()
         }
         else if (result.code === 11000) {
           message.error('修改失败：tId已存在')
@@ -269,7 +263,8 @@ export default class Tag extends Component {
     if (result.code===200) {
       hide();
       message.success("删除成功");
-      this.getTags()
+      this.props.getTags(this.props.user.level)
+      // this.getTags()
     }
     else {
       message.error("删除失败" + result.message)
@@ -288,23 +283,20 @@ export default class Tag extends Component {
   }
 
   componentDidMount () {
-    this.getTags()
+    // 使用redux管理后不需要this.getTags
+    // this.getTags()
   }
 
   render() {
 
-    const user = storageUtils.getUser()
+    const user = this.props.user
     if(user.level !== "admin") {
       message.warn("无权访问")
       return <Redirect to='/login'/>
     }
 
-    // function onChange(pagination, filters, sorter, extra) {
-    //   console.log('params', pagination, filters, sorter, extra);
-    // }
-
-    // 取出状态数据
-    const {tags, loading, showStatus, searchType, searchKey, confirmAddLoading, confirmUpdateLoading} = this.state
+    const {showStatus, searchType, searchKey, confirmAddLoading, confirmUpdateLoading} = this.state
+    const tags = this.props.tags
 
     const title = (
       <div>
@@ -337,20 +329,14 @@ export default class Tag extends Component {
     return (
       <Card title={title} extra={extra}>
         <Table
-          // bordered
           rowKey='_id'
-          loading={loading}
+          loading={tags.length ? false : true}
           dataSource={tags}
           columns={this.columns}
           pagination={{
-          //   current: this.pageNum,
-          //   total,
             defaultPageSize: PAGE_SIZE,
             showQuickJumper: true,
-          //   onChange: this.getProducts
           }}
-          // onChange={onChange}
-          // size={"middle"}
         />
         <Modal
           title="添加tag"
@@ -380,3 +366,8 @@ export default class Tag extends Component {
     )
   }
 }
+
+export default connect(
+  state => ({user: state.user, tags: state.tags}),
+  {getTags}
+)(Tag)

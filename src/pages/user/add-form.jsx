@@ -1,11 +1,6 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import {
-  Form,
-  // Select,
-  Input,
-  Icon
-} from 'antd'
+import { Form, Input, Icon } from 'antd'
 
 const Item = Form.Item
 // const Option = Select.Option

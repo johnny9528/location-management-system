@@ -1,7 +1,9 @@
 import React, { Component } from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
 import { Layout } from "antd";
-import storageUtils from '../../utils/storageUtils'
+import { connect } from 'react-redux'
+
+// import storageUtils from '../../utils/storageUtils'
 import LeftNav from "../../components/left-nav";
 import Header from "../../components/header";
 import Home from '../home/home'
@@ -9,15 +11,32 @@ import Anchor from "../anchor/anchor";
 import Tag from "../tag/tag";
 import User from "../user/user";
 import NotFound from "../not-found/not-found";
+import { getAnchors, getTags, getUsers, setAnchors, setTags, setUsers } from '../../redux/actions'
 
 const { Footer, Sider, Content } = Layout;
 
 /*
 后台管理的路由组件
  */
-export default class Admin extends Component {
+class Admin extends Component {
+
+  componentDidMount = () => {
+
+    //用户和管理员都需要anchors和tags数据
+    this.props.getAnchors(this.props.user.level); // 预加载数据
+
+    //用户和管理员得到的tags数据不一样
+    this.props.getTags(this.props.user.level);
+
+    //只有管理员需要users数据
+    if(this.props.user.level === 'admin') {
+      this.props.getUsers();
+    }
+  }
+
   render() {
-    const user = storageUtils.getUser()
+    // const user = storageUtils.getUser()
+    const user = this.props.user
     if(Object.keys(user).length === 0) {
       console.log("redirect");
       return <Redirect to='/login'/>
@@ -55,3 +74,8 @@ export default class Admin extends Component {
     );
   }
 }
+
+export default connect(
+  state => ({user: state.user}),
+  {getAnchors, getTags, getUsers, setAnchors, setTags, setUsers}
+)(Admin)

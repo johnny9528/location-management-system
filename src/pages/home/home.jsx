@@ -1,12 +1,13 @@
 import React, { Component } from 'react'
 // import { Redirect} from "react-router-dom";
 import ResizeObserver from 'resize-observer-polyfill';
-import './index.less'
 import { Form, Icon, message } from 'antd'
-import storageUtils from '../../utils/storageUtils'
+import { connect } from 'react-redux'
+
+import './index.less'
+// import storageUtils from '../../utils/storageUtils'
 import LinkButton from '../../components/link-button'
-import { reqTags, reqUserTags } from '../../api'
-import { reqAnchors, reqUserAnchors } from '../../api'
+import { reqTags, reqUserTags, reqAnchors, reqUserAnchors } from '../../api'
 import mapPic from '../../assets/images/map.png'
 import anchorPic from '../../assets/images/anchor.png'
 import tagPic from '../../assets/images/tag.png'
@@ -15,6 +16,7 @@ import notSavedAnchorPic from '../../assets/images/notSaved.png'
 import DataControl from './data-control'
 import AddForm from './add-form'
 import UpdateForm from './update-form'
+import { initWebsocket } from '../../redux/actions'
 import {
   MAP_W,
   MAP_H,
@@ -34,7 +36,7 @@ class Anchor extends Component {
 
     this.state = {
       // selectedId: '',
-      // anchors: {},
+      anchors: {},
       canvasData: {}, // 储存画图所需数据
       /*  示例
       canvasData = {
@@ -81,7 +83,12 @@ class Anchor extends Component {
   }
 
   getAnchors = async () => {
-    // const hide = message.loading('数据加载中', 0)
+    // 如果store中有anchors则直接使用
+    if (Object.keys(this.props.anchors).length > 0) {
+      this.setState({ anchors: this.props.anchors })
+      return;
+    }
+    console.log("load anchors for api");
     let result
     if (this.user.level === 'admin') {
       result = await reqAnchors();
@@ -97,11 +104,19 @@ class Anchor extends Component {
     } else {
       message.error("获取anchor数据失败" + result.message);
     }
-    // hide();
-    // message.success('数据加载完成');
   }
 
   getTags = async () => {
+    // 如果store中有tags则直接使用
+    if (this.props.tags.length > 0) {
+      const tags = this.props.tags;
+      this.setState({
+        tags: tags,
+        selectedRowKeys: [...tags.map((item) => item._id)],
+      })
+      return;
+    }
+
     this.setState({tableLoading: true})
     let result;
     if (this.user.level === 'admin') {
@@ -145,18 +160,19 @@ class Anchor extends Component {
     });
 
     //记录原始anchor坐标，用于绘制移动后原位置图和虚线图
+    // canvasData.originAnchorCanvas = JSON.parse(JSON.stringify(canvasData.anchor));
     this.originAnchorCanvas = JSON.parse(JSON.stringify(canvasData.anchor));
 
     // 画出地图和所有anchor
-    this.img = new Image();
+    this.img_map = new Image();
     this.img_anchor = new Image();
     this.img_notsaved_anchor = new Image();
     this.img_tag = new Image();
     this.img_tag_before = new Image();
-    this.img.src = mapPic;
-    this.img.onload = () => {
+    this.img_map.src = mapPic;
+    this.img_map.onload = () => {
       this.ctx.drawImage(
-        this.img,
+        this.img_map,
         canvasData.map.x - canvasData.map.w/2,
         canvasData.map.y - canvasData.map.h/2,
         canvasData.map.w,
@@ -218,7 +234,6 @@ class Anchor extends Component {
           // 判断鼠标是否在范围内
           if (this.ctx.isPointInPath(x, y)) {
             // 只有在变化的时候才会重新画图
-            console.log('in');
             if (canvasData.anchor[id].w === ANCHOR_W) {
               canvasData.anchor[id].w = 2 * ANCHOR_W;
               canvasData.anchor[id].h = 2 * ANCHOR_H;
@@ -253,79 +268,6 @@ class Anchor extends Component {
       let x_origin = e.clientX - canvasBox.left;
       let y_origin = e.clientY - canvasBox.top;
       // console.log("down",x, y);
-
-      // Object.keys(canvasData.anchor).forEach((id) => {
-
-      //   this.ctx.beginPath();
-      //   this.ctx.arc(canvasData.anchor[id].x, canvasData.anchor[id].y, selectedId === id ? 2*TRIGGER_RADIS : TRIGGER_RADIS, 0, Math.PI*2);
-      //   // 判断鼠标是否在anchor范围内
-      //   if (this.ctx.isPointInPath(x, y)) {
-      //     // 点击anchor
-      //     // isInAnchor = true;
-      //     // clickedId = id;
-
-      //     // 点击图标后放大，其他图标还原大小
-      //     if (selectedId) {
-      //       canvasData.anchor[selectedId].w = ANCHOR_W;
-      //       canvasData.anchor[selectedId].h = ANCHOR_H;
-      //     }
-      //     canvasData.anchor[id].w = 2 * ANCHOR_W;
-      //     canvasData.anchor[id].h = 2 * ANCHOR_H;
-
-      //     this.draw(canvasData);
-      //     this.props.form.resetFields(['x', 'y']);
-      //     this.setState({ canvasData, selectedId: id, showAdd: canvasData.anchor[id].notSavedType === 'add' ? true : false });
-
-      //     // 记录移动前数据
-      //     // 对象深度拷贝，浅拷贝{...obj}
-      //     let anchors_before = JSON.parse(JSON.stringify(anchors));
-      //     let canvasData_before = JSON.parse(JSON.stringify(canvasData));
-
-      //     // 移动anchor
-      //     this.canvas.onmousemove = (e) => {
-      //       // 获取canvas的包围盒对象
-      //       canvasBox = this.canvas.getBoundingClientRect();
-      //       x = e.clientX - canvasBox.left;
-      //       y = e.clientY - canvasBox.top;
-
-      //       // 计算坐标偏移
-      //       anchors[id].coords[0] = anchors_before[id].coords[0] + (x -x_origin)/RATIO/scaling;
-      //       anchors[id].coords[1] = anchors_before[id].coords[1] - (y -y_origin)/RATIO/scaling;
-      //       canvasData.anchor[id].x = canvasData_before.anchor[id].x + x - x_origin;
-      //       canvasData.anchor[id].y = canvasData_before.anchor[id].y + y - y_origin;
-      //       canvasData.anchor[id].notSaved = true;
-      //       canvasData.anchor[id].notSavedType = canvasData.anchor[id].notSavedType === 'add' ?  'add' : 'move' //如果为保存状态为add 则不修改
-
-      //       this.draw(canvasData);
-      //       this.setState({ anchors, canvasData })
-      //     }
-      //   } else {
-
-      //   }
-      // })
-
-      // 点击地图
-      // this.props.form.resetFields();
-
-      // 双击地图时所有anchor还原大小
-      // let clickTime = new Date().getTime();
-
-      // // 判断两次点击时间差
-      // if (clickTime - lastClickTime < 200
-      //   && lastClickLocation.x === x_origin
-      //   && lastClickLocation.y === y_origin) {
-
-      //   Object.keys(canvasData.anchor).forEach((id) => {
-      //     canvasData.anchor[id].w = ANCHOR_W;
-      //     canvasData.anchor[id].h = ANCHOR_H;
-      //   });
-      //   this.draw(canvasData);
-      //   this.setState({ selectedId: '', canvasData });
-      // }
-      // // 记录上次点击时间和坐标
-      // lastClickTime = clickTime;
-      // lastClickLocation.x = x_origin;
-      // lastClickLocation.y = y_origin;
 
       // 记录移动前地图坐标，anchor坐标
       let canvasData_before = JSON.parse(JSON.stringify(canvasData));
@@ -425,7 +367,7 @@ class Anchor extends Component {
 
     // 画地图
     this.ctx.drawImage(
-      this.img,
+      this.img_map,
       map.x - map.w/2,
       map.y - map.h/2,
       map.w,
@@ -535,7 +477,7 @@ class Anchor extends Component {
     from_y,
     to_x,
     to_y,
-    from_color = "rgba(0,0,0,1)", // 默认黑色
+    from_color = "rgb(0,0,0)", // 默认黑色
     to_color = "rgba(0,0,0,1)"
     ) => {
     this.ctx.beginPath();
@@ -639,7 +581,6 @@ class Anchor extends Component {
 
   // 选中的tag
   onSelectChange = selectedRowKeys => {
-    // console.log(selectedRowKeys);
     this.setState({ selectedRowKeys });
   };
 
@@ -651,55 +592,31 @@ class Anchor extends Component {
     this.setState({ showModal: option});
   }
 
-  webSocket = () => {
-    let W3CWebSocket = require("websocket").w3cwebsocket;
-
-    let client = new W3CWebSocket(
-      `ws://47.93.42.142:3004/web?user_id=${this.user.id}&level=${this.user.level}&client_type=web`,
-      "echo-protocol"
-    );
-
-    client.onerror = () => {
-      // console.log("Connection Error");
-      message.info("与服务器连接错误");
-    };
-
-    client.onopen = () => {
-      message.info("与服务器连接成功，开始推送实时数据");
-      // console.log("WebSocket Client Connected");
-      client.send(JSON.stringify({ data: "string" }));
-
-      client.onmessage = (e) => {
-        let res = JSON.parse(e.data);
-        let { canvasData } = this.state;
-        // 将websocket发送的tag定位数据给canvasData
-        canvasData.tag = res;
-        this.setState({canvasData}, () => {
-          this.ctx && this.draw(this.state.canvasData);
-        });
-      };
-    };
-
-    client.onclose = () => {
-      message.info("与服务器连接断开");
-      // console.log("echo-protocol Client Closed");
-    };
-  }
-
   componentDidMount = () => {
     this.isMount = true;
-    this.hide = message.loading('数据加载中', 0);
+
+    //有数据时不显示加载信息
+    const existedData = Object.keys(this.props.anchors) && this.props.tags.length;
+    if (!existedData) {
+      this.hide = message.loading('数据加载中', 0);
+    }
     Promise.all([
       this.getAnchors(),
       this.getTags()
     ]).then(() => {
       if (this.isMount) {
-        this.hide();
-        this.hide = null;
-        message.success('数据加载完成');
+        if (!existedData) {
+          this.hide();
+          this.hide = null;
+          message.success('数据加载完成');
+        }
         this.initCanvas();
         this.listenMouse();
-        this.webSocket();
+        // this.webSocket();
+
+        if(!this.props.wsClient) {
+          this.props.initWebsocket(this.props.user);
+        }
       }
     })
   }
@@ -723,9 +640,17 @@ class Anchor extends Component {
     }
   }
 
+  // props改变时触发
+  componentWillReceiveProps = () => {
+    let canvasData = JSON.parse(JSON.stringify(this.state.canvasData));
+    canvasData.tag = this.props.tagLoactionData;
+    this.setState({canvasData}, () => {
+      this.ctx && this.draw(this.state.canvasData);
+    });
+  }
+
   render = () => {
-    console.log('render');
-    this.user = storageUtils.getUser()
+    this.user = this.props.user
 
     const { scaling, canvasWidth, canvasHeight, showModal } = this.state;
 
@@ -752,7 +677,6 @@ class Anchor extends Component {
           moveAnchorToCentre={this.moveAnchorToCentre}
           clickAdd={this.clickAdd}
           addCancel={this.addCancel}
-          originAnchorCanvas={this.originAnchorCanvas}
           canvas={this.canvas}
           move={this.move}
           swichShowAnchor={this.swichShowAnchor}
@@ -780,4 +704,13 @@ class Anchor extends Component {
   }
 }
 
-export default Form.create()(Anchor)
+export default connect(
+  state => ({
+    user: state.user,
+    anchors: state.anchors,
+    tags: state.tags,
+    wsClient: state.wsClient,
+    tagLoactionData: state.tagLoactionData,
+  }),
+  {initWebsocket}
+)(Form.create()(Anchor))
