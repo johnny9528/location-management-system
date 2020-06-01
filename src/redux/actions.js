@@ -125,18 +125,43 @@ export const initWebsocket = (user) => {
     let W3CWebSocket = require("websocket").w3cwebsocket;
 
     const wsClient = new W3CWebSocket(
-      `${wsUrl}/${wsRoute}?user_id=${user.id}&level=${user.level}&client_type=web`,
+      `${wsUrl}/${wsRoute}?user_id=${user.id}&level=${user.level}&client_type=map`,
       "echo-protocol"
     );
 
     wsClient.onopen = () => {
       message.info("与服务器连接成功，开始推送实时数据");
-      wsClient.send(JSON.stringify({ data: "string" }));
+      wsClient.send(JSON.stringify({ data: "getTagsLocationData" }));
 
+      /*
+        tagLoactionData = {
+          "10001-10001":[{x:23, y:11}]
+        }
+      */
+      let tagLoactionData = {};
       wsClient.onmessage = (e) => {
-        const tagLoactionData = JSON.parse(e.data);
+        /*
+          singleData = {
+            tId: '10001-10001',
+            pos: [ 46.563476, -10.510793 ],
+            timestamp: 1589861522.215
+          }
+        */
+        const singleData = JSON.parse(e.data);
+        console.log(singleData)
+        // if (singleData.pos.x > 0 && singleData.pos.x < 55 & singleData.pos.y > 0 && singleData.pos.y < 44) {
+          if (!tagLoactionData[singleData.tId]) {
+            tagLoactionData[singleData.tId] = [{x: singleData.pos[0], y: singleData.pos[1]}]
+          } else if (tagLoactionData[singleData.tId].length < 10) {
+            tagLoactionData[singleData.tId].push({x: singleData.pos[0], y: singleData.pos[1]})
+          } else if (tagLoactionData[singleData.tId].length === 10) {
+            tagLoactionData[singleData.tId].shift()
+            tagLoactionData[singleData.tId].push({x: singleData.pos[0], y: singleData.pos[1]})
+          }
+        // }
+        console.log(tagLoactionData)
         // 将websocket发送的tag定位数据给canvasData
-        dispatch(setTagLocationData(tagLoactionData))
+        dispatch(setTagLocationData(JSON.parse(JSON.stringify(tagLoactionData))))
       };
     };
 

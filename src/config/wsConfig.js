@@ -1,2 +1,3 @@
 export const wsUrl = 'ws://47.93.42.142:3004'; //websocket url
-export const wsRoute = 'web'
+// export const wsRoute = 'web'
+export const wsRoute = 'map'

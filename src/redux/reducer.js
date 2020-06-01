@@ -69,7 +69,7 @@ function wsClient(state = null, action) {
   }
 }
 
-function tagLoactionData(state = [], action) {
+function tagLoactionData(state = {}, action) {
   switch (action.type) {
     case SET_TAGLOACTIONDATA:
       return action.tagLoactionData

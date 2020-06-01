@@ -16,7 +16,7 @@ import {
 } from 'antd'
 
 import LinkButton from '../../components/link-button'
-import {reqTags, reqAddTag, reqUpdateTag, reqDeleteTag, reqSearchTags} from '../../api'
+import {reqTags, reqDeleteTag, reqSearchTags} from '../../api'
 import {PAGE_SIZE} from '../../utils/constants'
 import { getTags } from "../../redux/actions";
 // import storageUtils from '../../utils/storageUtils'
@@ -30,14 +30,15 @@ class Tag extends Component {
 
   state = {
     tags: [],
+    searchTags: [],
     loading: false, // 是否正在加载中
     searchKey: '', // 搜索的关键字
     searchType: 'searchTId', // 根据哪个字段搜索
     showStatus: 0,
+    showModal: '',
     searchText: '',
     searchedColumn: '',
-    confirmAddLoading: false,
-    confirmUpdateLoading: false,
+    showSearchResult: false,
   }
 
   /*
@@ -117,10 +118,9 @@ class Tag extends Component {
   }
 
   /*
-  获取指定页码的列表数据显示
+  获取tags列表
    */
-  getTags = async (pageNum) => {
-    // this.pageNum = pageNum // 保存pageNum, 让其它方法可以看到
+  getTags = async () => {
     this.setState({loading: true}) // 显示loading
 
     const {searchKey, searchType} = this.state
@@ -139,7 +139,11 @@ class Tag extends Component {
     this.setState({loading: false}) // 隐藏loading
     if (result.code === 200) {
       // 取出分页数据, 更新状态, 显示分页列表
-      this.setState({tags: result.tag})
+      if (searchKey) {
+        this.setState({searchTags: result.tag, showSearchResult: true})
+      } else {
+        this.setState({tags: result.tag})
+      }
     } else {
       message.error("获取数据失败");
     }
@@ -149,9 +153,7 @@ class Tag extends Component {
   显示添加的确认框
   */
   showAdd = () => {
-    this.setState({
-      showStatus: 1
-    })
+    this.setState({showModal: 'add'})
   }
 
   /*
@@ -161,86 +163,14 @@ class Tag extends Component {
     // 保存tag对象
     this.tag = tag
     // 更新状态
-    this.setState({
-      showStatus: 2
-    })
+    this.setState({showModal: 'update'})
   }
 
   /*
-  响应点击取消: 隐藏确定框
-   */
-  handleCancel = () => {
-    // 清除输入数据
-    this.form.resetFields()
-    // 隐藏确认框
-    this.setState({
-      showStatus: 0
-    })
-  }
-  /*
-  添加tag
+  重置showModal
   */
-  addTag = () => {
-    this.form.validateFields(async (err, values) => {
-      if (!err) {
-        this.setState({confirmAddLoading: true})
-
-        // 收集数据, 并提交添加分类的请求
-        const {tId, username, description} = values
-				const result = await reqAddTag(tId, username, description)
-        if(result.code===200) {
-          // 清除输入数据
-          this.form.resetFields()
-          // 隐藏确认框
-          this.setState({showStatus: 0})
-          message.success("添加成功");
-          this.props.getTags(this.props.user.level)
-          // this.getTags()
-				}
-				else {
-					message.error("添加失败" + result.message)
-        }
-        this.setState({confirmAddLoading: false})
-      }
-    })
-  }
-
-  /*
-  更新tag
-   */
-  updateTag = () => {
-    // 进行表单验证, 只有通过了才处理
-    this.form.validateFields(async (err, values) => {
-      if(!err) {
-        this.setState({confirmUpdateLoading: true})
-
-        // 准备数据
-        const id = this.tag._id
-        const {tId, description} = values
-
-        // 发请求更新分类
-        const result = await reqUpdateTag(id, tId, description)
-
-        if (result.code === 200) {
-          // 隐藏确定框
-          this.setState({
-            showStatus: 0
-          })
-          // 清除输入数据
-          this.form.resetFields()
-          // 重新显示列表
-          message.success("修改成功");
-          this.props.getTags(this.props.user.level)
-          // this.getTags()
-        }
-        else if (result.code === 11000) {
-          message.error('修改失败：tId已存在')
-        } else {
-          message.error('修改失败' + result.message)
-        }
-        this.setState({confirmUpdateLoading: false})
-      }
-    })
+  setShowModal = (option) => {
+    this.setState({ showModal: option});
   }
 
   confirmDelete = (id) => {
@@ -272,19 +202,11 @@ class Tag extends Component {
   }
 
   refresh () {
-    this.setState({ searchKey: '', searchType: 'searchTId'}, () => {
-      this.getTags()
-    });
-
+    this.setState({ searchKey: '', searchType: 'searchTId', showSearchResult: false})
   }
 
   componentWillMount () {
     this.initColumns()
-  }
-
-  componentDidMount () {
-    // 使用redux管理后不需要this.getTags
-    // this.getTags()
   }
 
   render() {
@@ -295,8 +217,8 @@ class Tag extends Component {
       return <Redirect to='/login'/>
     }
 
-    const {showStatus, searchType, searchKey, confirmAddLoading, confirmUpdateLoading} = this.state
-    const tags = this.props.tags
+    const {searchType, searchKey, showModal, showSearchResult} = this.state
+    const tags = showSearchResult ? this.state.searchTags : (this.props.tags || this.state.tags)
 
     const title = (
       <div>
@@ -314,7 +236,7 @@ class Tag extends Component {
           value={searchKey}
           onChange={event => this.setState({searchKey:event.target.value})}
         />
-        <Button type='primary' icon="search" onClick={() => this.getTags(1)}>搜索</Button>
+        <Button type='primary' icon="search" onClick={() => this.getTags()}>搜索</Button>
         <Button type='primary' icon="redo" style={{marginLeft: 10}} onClick={() => this.refresh()}>刷新</Button>
       </div>
     )
@@ -330,7 +252,7 @@ class Tag extends Component {
       <Card title={title} extra={extra}>
         <Table
           rowKey='_id'
-          loading={tags.length ? false : true}
+          // loading={tags.length ? false : true}
           dataSource={tags}
           columns={this.columns}
           pagination={{
@@ -338,30 +260,15 @@ class Tag extends Component {
             showQuickJumper: true,
           }}
         />
-        <Modal
-          title="添加tag"
-          visible={showStatus===1}
-          onOk={this.addTag}
-          onCancel={this.handleCancel}
-          confirmLoading={confirmAddLoading}
-        >
-          <AddForm
-            setForm={(form) => {this.form = form}}
-            level={user.level}
-          />
-        </Modal>
-        <Modal
-          title="更新tag"
-          visible={showStatus===2}
-          onOk={this.updateTag}
-          onCancel={this.handleCancel}
-          confirmLoading={confirmUpdateLoading}
-        >
-          <UpdateForm
-            tag = {this.tag}
-            setForm={(form) => {this.form = form}}
-          />
-        </Modal>
+        <AddForm
+          showModal={showModal}
+          setShowModal={this.setShowModal}
+        />
+        <UpdateForm
+          tag={this.tag}
+          showModal={showModal}
+          setShowModal={this.setShowModal}
+        />
       </Card>
     )
   }

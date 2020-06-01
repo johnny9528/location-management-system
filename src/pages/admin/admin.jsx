@@ -13,7 +13,7 @@ import User from "../user/user";
 import NotFound from "../not-found/not-found";
 import { getAnchors, getTags, getUsers, setAnchors, setTags, setUsers } from '../../redux/actions'
 
-const { Footer, Sider, Content } = Layout;
+const { Sider, Content } = Layout;
 
 /*
 后台管理的路由组件
@@ -42,7 +42,7 @@ class Admin extends Component {
       return <Redirect to='/login'/>
     }
     return (
-      <Layout style={{ minHeight: "100%" }}>
+      <Layout style={{ minHeight: "100%" }}> {/* Content内容不够时依然保持100%高度 */}
         <Header>Header</Header>
         <Layout>
           {user.level === "admin" ? (
@@ -50,6 +50,7 @@ class Admin extends Component {
               style={{
                 backgroundColor: "#fff"
               }}
+              width="200"
             >
               <LeftNav />
             </Sider>
@@ -65,9 +66,9 @@ class Admin extends Component {
                 <Route component={NotFound} />
               </Switch>
             </Content>
-            <Footer style={{ textAlign: "center", color: "green" }}>
+            {/* <Footer style={{ height:20, textAlign: "center", color: "green" }}>
               @copyright 2020智能计算与通信实验室
-            </Footer>
+            </Footer> */}
           </Layout>
         </Layout>
       </Layout>

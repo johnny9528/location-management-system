@@ -1,8 +1,11 @@
 import React, { Component } from 'react'
 import { Form, Icon, Input, Button, message, Switch,  Modal, Dropdown, Menu, Table, InputNumber, Row, Col, Tooltip } from 'antd'
 import Highlighter from 'react-highlight-words';
+import { connect } from 'react-redux'
+
 import { reqDeleteTag, reqUserDeleteTag } from '../../api'
 import LinkButton from '../../components/link-button';
+import { getTags } from '../../redux/actions'
 
 const { confirm } = Modal;
 
@@ -50,7 +53,7 @@ class DataControl extends Component {
     if (result.code===200) {
       hide();
       message.success("删除成功");
-      this.props.getTags()
+      this.props.getTags(this.props.user.level)
     }
     else {
       message.error(result.message)
@@ -59,7 +62,9 @@ class DataControl extends Component {
 
 
   render () {
-    const { selectedRowKeys, tags, tagHistoryCount, tableLoading } = this.props.state;
+    const { selectedRowKeys, tagHistoryCount, tableLoading } = this.props.state;
+    // 从store中取出tags
+    const { tags } = this.props;
     const { searchKey, searchVisible, moreVisible } = this.state;
 
     const columns = [
@@ -151,7 +156,7 @@ class DataControl extends Component {
       >
         <Menu.Item>
           <Table
-            rowKey='_id'
+            rowKey='tId'
             bordered={false}
             loading={tableLoading}
             pagination={false}
@@ -185,6 +190,19 @@ class DataControl extends Component {
         <Menu.Item key="1">
           <Row gutter={8}>
             <Col span={16}>
+              显示anchor Id
+            </Col>
+            <Col span={8}>
+            <Switch
+              size="small"
+              onChange={this.props.swichShowAnchorId}
+              defaultChecked={false}/>
+            </Col>
+          </Row>
+        </Menu.Item>
+        <Menu.Item key="2">
+          <Row gutter={8}>
+            <Col span={16}>
               历史坐标个数
             </Col>
             <Col span={8}>
@@ -213,7 +231,7 @@ class DataControl extends Component {
           overlayClassName='dropdown-overlay'
         >
           <Input
-            placeholder="根据aId查询"
+            placeholder="根据tId查询"
             suffix={<Icon type="search" style={{ color: 'rgba(0,0,0,.25)' }} />}
             onChange={(event) => {this.setState({searchKey: event.target.value})}}
             allowClear
@@ -237,5 +255,8 @@ class DataControl extends Component {
   }
 }
 
-export default Form.create()(DataControl);
+export default connect(
+  state => ({user: state.user, tags: state.tags}),
+  {getTags}
+)(Form.create()(DataControl));
 

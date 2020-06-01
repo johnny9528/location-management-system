@@ -110,6 +110,7 @@ class DataControl extends Component {
       notSaved: true,
       notSavedType: 'add',
     };
+    canvasData.originAnchor[newAnchorId] = {...canvasData.anchor[newAnchorId]};
 
     // 将新anchor移到中心
     let offset_x = canvas.width/2 - canvasData.anchor[newAnchorId].x;
@@ -126,6 +127,7 @@ class DataControl extends Component {
     let canvasData = JSON.parse(JSON.stringify(this.props.state.canvasData));
     delete anchors[selectedId];
     delete canvasData.anchor[selectedId];
+    delete canvasData.originAnchor[selectedId];
     this.props.reDraw({ canvasData, anchors, selectedId: '', showAdd: false});
   }
 
@@ -155,7 +157,7 @@ class DataControl extends Component {
             w: 2 * ANCHOR_W,
             h: 2 * ANCHOR_H,
           }
-          this.props.originAnchorCanvas[id] = {
+          canvasData.originAnchor[id] = {
             x: canvasData.map.x - canvasData.map.w/2 + anchors[id].coords[0]*RATIO*scaling,
             y: canvasData.map.y + canvasData.map.h/2 - anchors[id].coords[1]*RATIO*scaling,
             w: ANCHOR_W,
@@ -191,8 +193,8 @@ class DataControl extends Component {
           };
           canvasData.anchor[id].notSaved = false;
           canvasData.anchor[id].notSavedType = '';
-          this.props.originAnchorCanvas[id].x = canvasData.anchor[id].x;
-          this.props.originAnchorCanvas[id].y = canvasData.anchor[id].y;
+          canvasData.originAnchor[id].x = canvasData.anchor[id].x;
+          canvasData.originAnchor[id].y = canvasData.anchor[id].y;
           this.props.reDraw({ anchors, canvasData });
           this.props.getAnchors(this.props.user.level)
           message.success("修改成功");
@@ -211,8 +213,8 @@ class DataControl extends Component {
     let anchors = JSON.parse(JSON.stringify(this.props.state.anchors));
     let canvasData = JSON.parse(JSON.stringify(this.props.state.canvasData));
 
-    canvasData.anchor[selectedId].x = this.props.originAnchorCanvas[selectedId].x;
-    canvasData.anchor[selectedId].y = this.props.originAnchorCanvas[selectedId].y;
+    canvasData.anchor[selectedId].x = canvasData.originAnchor[selectedId].x;
+    canvasData.anchor[selectedId].y = canvasData.originAnchor[selectedId].y;
     canvasData.anchor[selectedId].notSaved = false;
     canvasData.anchor[selectedId].notSavedType = '';
     anchors[selectedId].coords[0] = (canvasData.anchor[selectedId].x - canvasData.map.x + canvasData.map.w/2)/RATIO/scaling;
@@ -242,7 +244,7 @@ class DataControl extends Component {
     if (result.code===200) {
       delete canvasData.anchor[id];
       delete anchors[id];
-      delete this.props.originAnchorCanvas[id];
+      delete canvasData.originAnchor[id];
       this.props.reDraw({ canvasData, anchors, selectedId: ''})
       this.props.getAnchors(this.props.user.level)
       message.success("删除成功");

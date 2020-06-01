@@ -2,10 +2,7 @@ import React, {Component} from 'react'
 import {Link, withRouter} from 'react-router-dom'
 import {Menu, Icon} from 'antd';
 
-// import logo from '../../assets/images/logo.png'
-// import logo from '../../assets/images/icc_logo.jpg'
 import menuList from '../../config/menuConfig'
-// import './index.less'
 
 const SubMenu = Menu.SubMenu;
 
@@ -126,31 +123,17 @@ class LeftNav extends Component {
     }, [])
   }
 
-  /*
-  在第一次render()之前执行一次
-  为第一个render()准备数据(必须同步的)
-   */
   componentWillMount () {
     this.menuNodes = this.getMenuNodes(menuList)
   }
 
   render() {
-    // debugger
-    // 得到当前请求的路由路径
     let path = this.props.location.pathname
-    if(path.indexOf('/product')===0) { // 当前请求的是商品或其子路由界面
-      path = '/product'
-    }
 
-    // 得到需要打开菜单项的key
     const openKey = this.openKey
 
     return (
       <div className="left-nav">
-        {/* <Link to='/' className="left-nav-header">
-          <img src={logo} alt="logo"/>
-          <h1>定位管理系统</h1>
-        </Link> */}
 
         <Menu
           mode="inline"
@@ -167,9 +150,4 @@ class LeftNav extends Component {
   }
 }
 
-/*
-withRouter高阶组件:
-包装非路由组件, 返回一个新的组件
-新的组件向非路由组件传递3个属性: history/location/match
- */
 export default withRouter(LeftNav)

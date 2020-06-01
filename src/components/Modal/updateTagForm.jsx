@@ -1,5 +1,5 @@
 import React from 'react'
-import { Form, Input } from 'antd'
+import { Form, Input, Tooltip, Icon } from 'antd'
 const Item = Form.Item
 
 const UpdateTagForm = (props) => {
@@ -18,10 +18,22 @@ const UpdateTagForm = (props) => {
             getFieldDecorator('tId', {
               initialValue: tag.tId,
               rules: [
-                {required: true, message: '编号必须输入'}
+                {required: true, message: '编号必须输入'},
+                {
+                  pattern: /^([0-5]\d{4}|6([0-4]\d{3}|5([0-4]\d{2}|5([0-2]\d|3[0-5]))))-([0-5]\d{4}|6([0-4]\d{3}|5([0-4]\d{2}|5([0-2]\d|3[0-5]))))$/,
+                  message: "格式不正确"
+                }
               ]
             })(
-                <Input placeholder='请输入tag编号' allowClear/>
+              <Input
+                placeholder='请输入tag编号'
+                allowClear
+                suffix={
+                  <Tooltip title="格式XXXXX-XXXXX（X为数字），最大65535-65535">
+                    <Icon type="info-circle" style={{ color: 'rgba(0,0,0,.45)' }} />
+                  </Tooltip>
+                }
+              />
             )
           }
         </Item>

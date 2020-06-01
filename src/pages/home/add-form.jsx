@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 
 import { reqAddTag, reqUserAddTag } from '../../api'
 import AddTagForm from '../../components/Modal/addTagForm'
+import { getTags } from '../../redux/actions'
 
 class AddForm extends Component {
 
@@ -29,7 +30,7 @@ class AddForm extends Component {
           this.props.form.resetFields()
           // 隐藏add modal
           this.props.setShowModal('')
-          this.props.getTags()
+          this.props.getTags(this.props.user.level)
           message.success("添加成功");
         }
         else {
@@ -46,7 +47,7 @@ class AddForm extends Component {
   }
 
   render() {
-    const { showModal, user } = this.props;
+    const { showModal } = this.props;
     const { confirmLoading } = this.state;
 
     return (
@@ -59,7 +60,6 @@ class AddForm extends Component {
         >
           <AddTagForm
             form={this.props.form}
-            level={user.level}
           />
       </Modal>
     )
@@ -67,6 +67,6 @@ class AddForm extends Component {
 }
 
 export default connect(
-  state => ({user: state.user, anchors: state.anchors, tags: state.tags}),
-  // {setAnchors, setTags}
+  state => ({user: state.user}),
+  {getTags}
 )(Form.create()(AddForm))

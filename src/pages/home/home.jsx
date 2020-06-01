@@ -1,18 +1,14 @@
 import React, { Component } from 'react'
-// import { Redirect} from "react-router-dom";
-import ResizeObserver from 'resize-observer-polyfill';
 import { Form, Icon, message } from 'antd'
 import { connect } from 'react-redux'
 
 import './index.less'
-// import storageUtils from '../../utils/storageUtils'
 import LinkButton from '../../components/link-button'
 import { reqTags, reqUserTags, reqAnchors, reqUserAnchors } from '../../api'
 import mapPic from '../../assets/images/map.png'
 import anchorPic from '../../assets/images/anchor.png'
 import tagPic from '../../assets/images/tag.png'
 import tagBeforePic from '../../assets/images/tag_before.png'
-import notSavedAnchorPic from '../../assets/images/notSaved.png'
 import DataControl from './data-control'
 import AddForm from './add-form'
 import UpdateForm from './update-form'
@@ -27,7 +23,7 @@ import {
   TAG_H,
   TRIGGER_RADIS,
 } from '../../config/mapConfig'
-
+import { zoom, move, drawID, drawCoord, drawLine } from '../../utils/canvasUtils'
 
 class Anchor extends Component {
   constructor(props) {
@@ -73,8 +69,7 @@ class Anchor extends Component {
       scaling: 1, // 缩放比例
       showAdd: false, // 添加时显示add界面
       showAnchor: true, // 是否显示anchor
-      canvasWidth: 1200,
-      canvasHeight: 620,
+      showAnchorId: false, // 是够显示anchor aId
       tagHistoryCount: 0, // 历史tag定位个数
       selectedRowKeys: [], // tag table选中的tag的tId数组
       showModal: '', // 控制显示添加修改界面
@@ -88,7 +83,6 @@ class Anchor extends Component {
       this.setState({ anchors: this.props.anchors })
       return;
     }
-    console.log("load anchors for api");
     let result
     if (this.user.level === 'admin') {
       result = await reqAnchors();
@@ -112,7 +106,7 @@ class Anchor extends Component {
       const tags = this.props.tags;
       this.setState({
         tags: tags,
-        selectedRowKeys: [...tags.map((item) => item._id)],
+        selectedRowKeys: [...tags.map((item) => item.tId)],
       })
       return;
     }
@@ -127,7 +121,7 @@ class Anchor extends Component {
     if (result.code === 200) {
       this.setState({
         tags: result.tag,
-        selectedRowKeys: [...result.tag.map((item) => item._id)],
+        selectedRowKeys: [...result.tag.map((item) => item.tId)],
       })
     } else {
       message.error("获取tag数据失败" + result.message);
@@ -159,10 +153,6 @@ class Anchor extends Component {
       };
     });
 
-    //记录原始anchor坐标，用于绘制移动后原位置图和虚线图
-    // canvasData.originAnchorCanvas = JSON.parse(JSON.stringify(canvasData.anchor));
-    this.originAnchorCanvas = JSON.parse(JSON.stringify(canvasData.anchor));
-
     // 画出地图和所有anchor
     this.img_map = new Image();
     this.img_anchor = new Image();
@@ -191,11 +181,6 @@ class Anchor extends Component {
           );
         });
       }
-      // 移动未保存和添加未保存显示为灰色图标
-      this.img_notsaved_anchor.src = notSavedAnchorPic;
-      this.img_notsaved_anchor.onload = () => {
-        this.ctx.drawImage(this.img_notsaved_anchor, 0, 0, 0, 0);
-      }
       // 加载tag图片
       this.img_tag.src = tagPic;
       this.img_tag.onload = () => {
@@ -221,7 +206,7 @@ class Anchor extends Component {
 
     // 移动靠近anchor时 放大图标
     const highlightAnchor = (e) => {
-      const { canvasData, anchors, selectedId } = this.state;
+      const { canvasData, selectedId } = this.state;
       // 获取canvas的包围盒对象
       canvasBox = this.canvas.getBoundingClientRect();
       x = e.clientX - canvasBox.left;
@@ -239,11 +224,6 @@ class Anchor extends Component {
               canvasData.anchor[id].h = 2 * ANCHOR_H;
               this.draw(canvasData);
             }
-            this.drawID(
-              canvasData.anchor[id].x,
-              canvasData.anchor[id].y,
-              anchors[id].aId
-            )
           } else {
             if (canvasData.anchor[id].w === 2 * ANCHOR_W) {
               canvasData.anchor[id].w = ANCHOR_W;
@@ -271,7 +251,6 @@ class Anchor extends Component {
 
       // 记录移动前地图坐标，anchor坐标
       let canvasData_before = JSON.parse(JSON.stringify(canvasData));
-      let originAnchorCanvas_before = JSON.parse(JSON.stringify(this.originAnchorCanvas));
 
       // 移动地图
       this.canvas.onmousemove = (e) => {
@@ -288,11 +267,6 @@ class Anchor extends Component {
           canvasData.anchor[id].x = canvasData_before.anchor[id].x + x - x_origin;
           canvasData.anchor[id].y = canvasData_before.anchor[id].y + y - y_origin;
         });
-
-        Object.keys(this.originAnchorCanvas).forEach((id) => {
-          this.originAnchorCanvas[id].x = originAnchorCanvas_before[id].x + x - x_origin;
-          this.originAnchorCanvas[id].y = originAnchorCanvas_before[id].y + y - y_origin;
-        })
 
         this.draw(canvasData);
         this.setState({ canvasData });
@@ -318,48 +292,15 @@ class Anchor extends Component {
       if (scaling_after <0.5) {
         scaling_after = 0.5;
       }
-      let canvasData_afterzoom = this.zoom(canvasData, scaling_after);
+      let canvasData_afterzoom = zoom(canvasData, scaling_after, false);
       this.draw (canvasData_afterzoom);
-      this.setState({ canvasData_afterzoom, scaling: scaling_after });
+      this.setState({ canvasData: canvasData_afterzoom, scaling: scaling_after });
     };
-  }
 
-  // 移动修改坐标
-  move = (canvasData, offset_x, offset_y) => {
-    canvasData.map.x = canvasData.map.x + offset_x;
-    canvasData.map.y = canvasData.map.y + offset_y;
-
-    Object.keys(canvasData.anchor).forEach((id) => {
-      canvasData.anchor[id].x = canvasData.anchor[id].x + offset_x;
-      canvasData.anchor[id].y = canvasData.anchor[id].y + offset_y;
-    });
-    Object.keys(this.originAnchorCanvas).forEach((id) => {
-      this.originAnchorCanvas[id].x = this.originAnchorCanvas[id].x + offset_x;
-      this.originAnchorCanvas[id].y = this.originAnchorCanvas[id].y + offset_y;
-    });
-    return canvasData;
-  }
-  // 缩放修改坐标
-  zoom = (canvasData, scaling) => {
-    let canvasData_before = JSON.parse(JSON.stringify(canvasData));
-    canvasData.map.w = MAP_W*scaling;
-    canvasData.map.h = MAP_H*scaling;
-
-    Object.keys(canvasData.anchor).forEach((id) => {
-      canvasData.anchor[id].x = canvasData.map.x - (canvasData.map.x - canvasData.anchor[id].x)*canvasData.map.w/canvasData_before.map.w;
-      canvasData.anchor[id].y = canvasData.map.y - (canvasData.map.y - canvasData.anchor[id].y)*canvasData.map.h/canvasData_before.map.h;
-    });
-
-    Object.keys(this.originAnchorCanvas).forEach((id) => {
-      this.originAnchorCanvas[id].x = canvasData.map.x - (canvasData.map.x - this.originAnchorCanvas[id].x)*canvasData.map.w/canvasData_before.map.w;
-      this.originAnchorCanvas[id].y = canvasData.map.y - (canvasData.map.y - this.originAnchorCanvas[id].y)*canvasData.map.h/canvasData_before.map.h;
-    })
-    return canvasData;
   }
 
   // 画地图和所有anchor
   draw = (canvasData) => {
-    // console.log('draw');
     const { map, anchor, tag } = canvasData;
     const { scaling, tagHistoryCount } = this.state;
     // 清空canvas
@@ -376,28 +317,32 @@ class Anchor extends Component {
 
     // 画tag
     if (tag) {
-      Object.keys(tag).forEach((id) => {
-        // console.log(this.state.selectedRowKeys.indexOf(id))
-        if (this.state.selectedRowKeys.indexOf(id) > -1) {
-          let length = tag[id].coord.length;
-          tag[id].coord.forEach((value, index) => {
+      Object.keys(tag).forEach((tId) => {
+        // 选中了的才画出来
+        // console.log("this.state.selectedRowKeys", this.state.selectedRowKeys, tId)
+        if (this.state.selectedRowKeys.indexOf(tId) > -1) {
+          let length = tag[tId].length;
+          tag[tId].forEach((value, index) => {
             if (index > length - tagHistoryCount - 2) {
               let img = this.img_tag_before;
               let tag_w = TAG_W;
               let tag_h = TAG_H;
-              // 最新数据用不同图标，同时画出坐标
+              // 最新一条数据用不同图标，同时画出坐标
               if (index === length - 1) {
+                console.log(true, "value", value, index);
                 img = this.img_tag;
-                this.drawCoord(
+                drawCoord(
+                  this.ctx,
                   canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
                   canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
                   value.x,
                   value.y,
                 );
-                this.drawID(
+                drawID(
+                  this.ctx,
                   canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
                   canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
-                  tag[id].tId
+                  tId
                 )
               }
               this.ctx.drawImage(
@@ -408,11 +353,12 @@ class Anchor extends Component {
                 tag_h,
               );
               if (index + 1 < length) {
-                this.drawLine(
-                  canvasData.map.x - canvasData.map.w/2 + tag[id].coord[index].x*RATIO*scaling,
-                  canvasData.map.y + canvasData.map.h/2 - tag[id].coord[index].y*RATIO*scaling,
-                  canvasData.map.x - canvasData.map.w/2 + tag[id].coord[index + 1].x*RATIO*scaling,
-                  canvasData.map.y + canvasData.map.h/2 - tag[id].coord[index + 1].y*RATIO*scaling,
+                drawLine(
+                  this.ctx,
+                  canvasData.map.x - canvasData.map.w/2 + tag[tId][index].x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - tag[tId][index].y*RATIO*scaling,
+                  canvasData.map.x - canvasData.map.w/2 + tag[tId][index + 1].x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - tag[tId][index + 1].y*RATIO*scaling,
                   "rgba(18,150,219,0.5)",
                   "rgba(18,150,219,0.5)",
                 );
@@ -426,104 +372,23 @@ class Anchor extends Component {
     // 画anchor
     if (this.state.showAnchor) {
       Object.keys(anchor).forEach((id) => {
-        // 判断是否未保存，未保存用灰色图标
-        let img;
-        if (anchor[id].notSaved) {
-          img = this.img_notsaved_anchor;
-          // 如果未保存且为移动状态， 绘图原坐标和虚线
-          if (anchor[id].notSavedType === 'move') {
-            this.drawLine(
-              this.originAnchorCanvas[id].x,
-              this.originAnchorCanvas[id].y,
-              anchor[id].x,
-              anchor[id].y,
-              "rgba(216,30,6,1)",
-              "rgba(191,191,191,1)",
-            );
-            this.ctx.drawImage(
-              this.img_anchor,
-              this.originAnchorCanvas[id].x - this.originAnchorCanvas[id].w/2,
-              this.originAnchorCanvas[id].y - this.originAnchorCanvas[id].h/2,
-              this.originAnchorCanvas[id].h,
-              this.originAnchorCanvas[id].w,
-            );
-          }
-        } else {
-          img = this.img_anchor;
-        }
         this.ctx.drawImage(
-          img,
+          this.img_anchor,
           anchor[id].x - anchor[id].w/2,
           anchor[id].y - anchor[id].h/2,
           anchor[id].h,
           anchor[id].w,
         );
-        if (this.state.selectedId === id) {
-          // 选中的anchor下方显示坐标
-          this.drawCoord(
-            anchor[id].x,
-            anchor[id].y,
-            this.state.anchors[id].coords[0],
-            this.state.anchors[id].coords[1],
+
+        if (this.state.showAnchorId) {
+          drawID(
+            this.ctx,
+            canvasData.anchor[id].x,
+            canvasData.anchor[id].y,
+            this.state.anchors[id].aId
           )
         }
       });
-    }
-  }
-
-  // 绘制连线
-  drawLine = (
-    from_x,
-    from_y,
-    to_x,
-    to_y,
-    from_color = "rgb(0,0,0)", // 默认黑色
-    to_color = "rgba(0,0,0,1)"
-    ) => {
-    this.ctx.beginPath();
-    // 设置线宽
-    this.ctx.lineWidth = 2;
-    // 设置间距（参数为无限数组，虚线的样式会随数组循环）
-    this.ctx.setLineDash([4, 4]);
-    this.ctx.moveTo(from_x, from_y);
-    this.ctx.lineTo(to_x, to_y);
-    let gradient = this.ctx.createLinearGradient(from_x, from_y, to_x, to_y);
-    gradient.addColorStop(0, from_color);
-    gradient.addColorStop(1, to_color);
-    // 填充颜色
-    this.ctx.strokeStyle = gradient;
-    // 开始填充
-    this.ctx.stroke();
-    this.ctx.closePath();
-  }
-
-  // 在绘制图标下方绘制真实坐标
-  drawCoord = (x, y, real_x, real_y) => {
-    this.ctx.textAlign='center';
-		this.ctx.textBaseline='middle';
-		this.ctx.font="14px SimSun, Songti SC";
-		this.ctx.fillText(`(${real_x.toFixed(2)}, ${real_y.toFixed(2)})`, x, y + 20);
-  }
-
-  drawID = (x, y, id) => {
-    this.ctx.textAlign='center';
-		this.ctx.textBaseline='middle';
-		this.ctx.font="14px SimSun, Songti SC";
-		this.ctx.fillText(`${id}`, x, y - 20);
-  }
-
-  // 获得父组件的长宽位置
-  refHandle = (cw) => { // containerWrap
-    if (cw) {
-      const ro = new ResizeObserver((entries, observer) => {
-        // eslint-disable-next-line no-restricted-syntax
-        for (const entry of entries) {
-          const { width } = entry.contentRect;
-          // console.log(`Element's size: ${width} x ${height} `);
-          this.setState({ canvasWidth: width });
-        }
-      });
-      ro.observe(cw);
     }
   }
 
@@ -538,7 +403,7 @@ class Anchor extends Component {
     const { canvasData, scaling } = this.state;
     let scaling_after = scaling;
     scaling_after += 0.1;
-    let canvasData_afterzoom = this.zoom(canvasData, scaling_after);
+    let canvasData_afterzoom = zoom(canvasData, scaling_after, false);
     this.reDraw({ canvasData: canvasData_afterzoom, scaling: scaling_after })
   }
 
@@ -551,7 +416,7 @@ class Anchor extends Component {
     if (scaling_after <0.5) {
       scaling_after = 0.5;
     }
-    let canvasData_afterzoom = this.zoom(canvasData, scaling_after);
+    let canvasData_afterzoom = zoom(canvasData, scaling_after, false);
     this.reDraw({ canvasData: canvasData_afterzoom, scaling: scaling_after })
   }
 
@@ -564,8 +429,8 @@ class Anchor extends Component {
     // 还原地图坐标为中心
     let offset_x = this.canvas.width/2 - canvasData.map.x;
     let offset_y = this.canvas.height/2 - canvasData.map.y;
-    let canvasData_aftermove = this.move(canvasData, offset_x, offset_y);
-    let canvasData_afterzoom = this.zoom(canvasData_aftermove, scaling_after);
+    let canvasData_aftermove = move(canvasData, offset_x, offset_y, false);
+    let canvasData_afterzoom = zoom(canvasData_aftermove, scaling_after, false);
     this.reDraw({ canvasData: canvasData_afterzoom, scaling: scaling_after })
   }
 
@@ -574,18 +439,24 @@ class Anchor extends Component {
     this.setState({ showAnchor: checked });
   }
 
+  // 切换显示anchor aId
+  swichShowAnchorId = (checked) => {
+    this.setState({ showAnchorId: checked });
+  }
+
   // 控制tag历史定位个数
   changeTagHistoryCount = (value) => {
     this.setState({ tagHistoryCount: value });
   }
 
   // 选中的tag
-  onSelectChange = selectedRowKeys => {
+  onSelectChange = (selectedRowKeys) => {
     this.setState({ selectedRowKeys });
   };
 
   // 控制添加和修改框的显示
   setShowModal = (option, tag) => {
+    // 用于子组件控制model
     if (option === 'update') {
       this.tag = tag;
     }
@@ -612,20 +483,13 @@ class Anchor extends Component {
         }
         this.initCanvas();
         this.listenMouse();
-        // this.webSocket();
 
+        // 只初始化一次websocket
         if(!this.props.wsClient) {
           this.props.initWebsocket(this.props.user);
         }
       }
     })
-  }
-
-  componentDidUpdate = () => {
-    if (this.canvas) { // 防止canvas未渲染时进入
-      // 浏览器缩放后重新画图
-      this.draw(this.state.canvasData)
-    }
   }
 
   // 离开页面取消异步操作
@@ -642,22 +506,29 @@ class Anchor extends Component {
 
   // props改变时触发
   componentWillReceiveProps = () => {
+    console.log("componentWillReceiveProps", this.props.tagLoactionData)
     let canvasData = JSON.parse(JSON.stringify(this.state.canvasData));
+    // 将websocket收到的数据给canvasData
     canvasData.tag = this.props.tagLoactionData;
     this.setState({canvasData}, () => {
       this.ctx && this.draw(this.state.canvasData);
     });
+
+
   }
 
   render = () => {
     this.user = this.props.user
 
-    const { scaling, canvasWidth, canvasHeight, showModal } = this.state;
+    const { scaling, showModal } = this.state;
+
+    const width = document.body.clientWidth - 40 - (this.props.user.level === "admin" ? 200 : 0);
+    const height = document.body.clientHeight - 120;
 
     return (
       <div className='tag'>
         <div className='map' ref={this.refHandle}>
-          {canvasWidth && <canvas id="myCanvas" width={canvasWidth} height={canvasHeight}></canvas>}
+          <canvas id="myCanvas" width={width} height={height}></canvas>
         </div>
         <div className="map-control">
           <LinkButton onClick={this.zoomIn}>
@@ -678,26 +549,22 @@ class Anchor extends Component {
           clickAdd={this.clickAdd}
           addCancel={this.addCancel}
           canvas={this.canvas}
-          move={this.move}
+          // move={this.move}
           swichShowAnchor={this.swichShowAnchor}
+          swichShowAnchorId={this.swichShowAnchorId}
           changeTagHistoryCount={this.changeTagHistoryCount}
           onSelectChange={this.onSelectChange}
           setShowModal={this.setShowModal}
-          getTags={this.getTags}
           user={this.user}
         />
         <AddForm
           showModal={showModal}
           setShowModal={this.setShowModal}
-          getTags={this.getTags}
-          user={this.user}
         />
         <UpdateForm
           showModal={showModal}
           setShowModal={this.setShowModal}
           tag={this.tag}
-          getTags={this.getTags}
-          user={this.user}
         />
       </div>
     )

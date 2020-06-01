@@ -1,7 +1,10 @@
 import React, {Component} from 'react'
-import { reqUpdateTag, reqUserUpdateTag } from '../../api'
 import { Form, Modal,  message } from 'antd'
+import { connect } from 'react-redux'
+
+import { reqUpdateTag, reqUserUpdateTag } from '../../api'
 import UpdateTagForm from '../../components/Modal/updateTagForm'
+import { getTags } from '../../redux/actions'
 
 class UpdateForm extends Component {
 
@@ -29,13 +32,16 @@ class UpdateForm extends Component {
 
         if (result.code === 200) {
           this.props.form.resetFields()
-          // 隐藏add modal
+          // 隐藏modal
           this.props.setShowModal('')
-          this.props.getTags()
+          // redux
+          this.props.getTags(this.props.user.level)
           message.success("修改成功");
         }
         else if (result.code === 11000) {
           message.error('修改失败：tId已存在')
+        } else {
+          message.error('修改失败' + result.message)
         }
         this.setState({confirmLoading: false})
       }
@@ -67,4 +73,7 @@ class UpdateForm extends Component {
   }
 }
 
-export default Form.create()(UpdateForm)
+export default connect(
+  state => ({user: state.user}),
+  {getTags}
+)(Form.create()(UpdateForm))

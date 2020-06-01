@@ -3,7 +3,11 @@
  */
 import React from 'react'
 import ReactDOM from 'react-dom'
-// import 'antd/dist/antd.css'
+
+// IE浏览器支持
+import  "react-app-polyfill/ie11";
+import  "react-app-polyfill/stable";
+
 
 import { Provider } from 'react-redux'
 
