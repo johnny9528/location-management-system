@@ -138,7 +138,8 @@ export const initWebsocket = (user) => {
           "10001-10001":[{x:23, y:11}]
         }
       */
-      let tagLoactionData = {};
+      let tagLoactionData = {simulate:{}, actual: {}};
+
       wsClient.onmessage = (e) => {
         /*
           singleData = {
@@ -148,18 +149,32 @@ export const initWebsocket = (user) => {
           }
         */
         const singleData = JSON.parse(e.data);
-        console.log(singleData)
-        // if (singleData.pos.x > 0 && singleData.pos.x < 55 & singleData.pos.y > 0 && singleData.pos.y < 44) {
-          if (!tagLoactionData[singleData.tId]) {
-            tagLoactionData[singleData.tId] = [{x: singleData.pos[0], y: singleData.pos[1]}]
-          } else if (tagLoactionData[singleData.tId].length < 10) {
-            tagLoactionData[singleData.tId].push({x: singleData.pos[0], y: singleData.pos[1]})
-          } else if (tagLoactionData[singleData.tId].length === 10) {
-            tagLoactionData[singleData.tId].shift()
-            tagLoactionData[singleData.tId].push({x: singleData.pos[0], y: singleData.pos[1]})
+        console.log(singleData);
+
+        // console.log(singleData)
+        if(singleData.description && singleData.description === "actual"){
+          if (!tagLoactionData.actual[singleData.tId]) {
+            tagLoactionData.actual[singleData.tId] = [{x: singleData.pos[0], y: singleData.pos[1]}]
+          } else if (tagLoactionData.actual[singleData.tId].length < 10) {
+            tagLoactionData.actual[singleData.tId].push({x: singleData.pos[0], y: singleData.pos[1]})
+          } else if (tagLoactionData.actual[singleData.tId].length === 10) {
+            tagLoactionData.actual[singleData.tId].shift()
+            tagLoactionData.actual[singleData.tId].push({x: singleData.pos[0], y: singleData.pos[1]})
           }
-        // }
-        console.log(tagLoactionData)
+        } else {
+          // if (singleData.pos.x > 0 && singleData.pos.x < 55 & singleData.pos.y > 0 && singleData.pos.y < 44) {
+          if (!tagLoactionData.simulate[singleData.tId]) {
+            tagLoactionData.simulate[singleData.tId] = [{x: singleData.pos[0], y: singleData.pos[1]}]
+          } else if (tagLoactionData.simulate[singleData.tId].length < 10) {
+            tagLoactionData.simulate[singleData.tId].push({x: singleData.pos[0], y: singleData.pos[1]})
+          } else if (tagLoactionData.simulate[singleData.tId].length === 10) {
+            tagLoactionData.simulate[singleData.tId].shift()
+            tagLoactionData.simulate[singleData.tId].push({x: singleData.pos[0], y: singleData.pos[1]})
+          }
+          // }
+        }
+
+        // console.log(tagLoactionData)
         // 将websocket发送的tag定位数据给canvasData
         dispatch(setTagLocationData(JSON.parse(JSON.stringify(tagLoactionData))))
       };

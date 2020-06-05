@@ -8,7 +8,9 @@ import { reqTags, reqUserTags, reqAnchors, reqUserAnchors } from '../../api'
 import mapPic from '../../assets/images/map.png'
 import anchorPic from '../../assets/images/anchor.png'
 import tagPic from '../../assets/images/tag.png'
-import tagBeforePic from '../../assets/images/tag_before.png'
+import preTagPic from '../../assets/images/pre_tag.png'
+import actualTag from '../../assets/images/actual_tag.png'
+import preActualTag from '../../assets/images/pre_actual_tag.png'
 import DataControl from './data-control'
 import AddForm from './add-form'
 import UpdateForm from './update-form'
@@ -158,7 +160,10 @@ class Anchor extends Component {
     this.img_anchor = new Image();
     this.img_notsaved_anchor = new Image();
     this.img_tag = new Image();
-    this.img_tag_before = new Image();
+    this.img_pre_tag = new Image();
+    this.img_actual_tag = new Image();
+    this.img_pre_actual_tag = new Image();
+
     this.img_map.src = mapPic;
     this.img_map.onload = () => {
       this.ctx.drawImage(
@@ -186,10 +191,20 @@ class Anchor extends Component {
       this.img_tag.onload = () => {
         this.ctx.drawImage(this.img_tag, 0, 0, 0, 0);
       }
-      // 加载tag_before图片
-      this.img_tag_before.src = tagBeforePic;
-      this.img_tag_before.onload = () => {
-        this.ctx.drawImage(this.img_tag_before, 0, 0, 0, 0);
+      // 加载pre_tag图片
+      this.img_pre_tag.src = preTagPic;
+      this.img_pre_tag.onload = () => {
+        this.ctx.drawImage(this.img_pre_tag, 0, 0, 0, 0);
+      }
+      // 加载actual_tag图片
+      this.img_actual_tag.src = actualTag;
+      this.img_actual_tag.onload = () => {
+        this.ctx.drawImage(this.img_actual_tag, 0, 0, 0, 0);
+      }
+      // 加载pre_actual_pic图片
+      this.img_pre_actual_tag.src = preActualTag;
+      this.img_pre_actual_tag.onload = () => {
+        this.ctx.drawImage(this.img_pre_actual_tag, 0, 0, 0, 0);
       }
     };
     this.setState({ canvasData });
@@ -316,20 +331,123 @@ class Anchor extends Component {
     );
 
     // 画tag
-    if (tag) {
-      Object.keys(tag).forEach((tId) => {
+    // console.log(tag.simulate);
+    // if (tag) {
+    // Object.keys(tag).forEach((tId) => {
+      //   // 选中了的才画出来
+      //   // console.log("this.state.selectedRowKeys", this.state.selectedRowKeys, tId)
+      //   if (this.state.selectedRowKeys.indexOf(tId) > -1) {
+      //     let length = tag[tId].length;
+      //     tag[tId].forEach((value, index) => {
+      //       if (index > length - tagHistoryCount - 2) {
+      //         let img = this.img_pre_tag;
+      //         let tag_w = TAG_W;
+      //         let tag_h = TAG_H;
+      //         // 最新一条数据用不同图标，同时画出坐标
+      //         if (index === length - 1) {
+      //           console.log(true, "value", value, index);
+      //           img = this.img_tag;
+      //           drawCoord(
+      //             this.ctx,
+      //             canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
+      //             canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
+      //             value.x,
+      //             value.y,
+      //           );
+      //           drawID(
+      //             this.ctx,
+      //             canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
+      //             canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
+      //             tId
+      //           )
+      //         }
+      //         this.ctx.drawImage(
+      //           img,
+      //           canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling - tag_w/2,
+      //           canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling - tag_h/2,
+      //           tag_w,
+      //           tag_h,
+      //         );
+      //         if (index + 1 < length) {
+      //           drawLine(
+      //             this.ctx,
+      //             canvasData.map.x - canvasData.map.w/2 + tag[tId][index].x*RATIO*scaling,
+      //             canvasData.map.y + canvasData.map.h/2 - tag[tId][index].y*RATIO*scaling,
+      //             canvasData.map.x - canvasData.map.w/2 + tag[tId][index + 1].x*RATIO*scaling,
+      //             canvasData.map.y + canvasData.map.h/2 - tag[tId][index + 1].y*RATIO*scaling,
+      //             "rgba(18,150,219,0.5)",
+      //             "rgba(18,150,219,0.5)",
+      //           );
+      //         }
+      //       }
+      //     })
+      //   }
+      // });
+    // }
+    if (tag.actual) {
+      Object.keys(tag.actual).forEach((tId) => {
         // 选中了的才画出来
         // console.log("this.state.selectedRowKeys", this.state.selectedRowKeys, tId)
         if (this.state.selectedRowKeys.indexOf(tId) > -1) {
-          let length = tag[tId].length;
-          tag[tId].forEach((value, index) => {
+          let length = tag.actual[tId].length;
+          tag.actual[tId].forEach((value, index) => {
             if (index > length - tagHistoryCount - 2) {
-              let img = this.img_tag_before;
+              let img = this.img_pre_actual_tag;
               let tag_w = TAG_W;
               let tag_h = TAG_H;
               // 最新一条数据用不同图标，同时画出坐标
               if (index === length - 1) {
-                console.log(true, "value", value, index);
+                img = this.img_actual_tag;
+                drawCoord(
+                  this.ctx,
+                  canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
+                  value.x,
+                  value.y,
+                );
+                drawID(
+                  this.ctx,
+                  canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
+                  tId
+                )
+              }
+              this.ctx.drawImage(
+                img,
+                canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling - tag_w/2,
+                canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling - tag_h/2,
+                tag_w,
+                tag_h,
+              );
+              if (index + 1 < length) {
+                drawLine(
+                  this.ctx,
+                  canvasData.map.x - canvasData.map.w/2 + tag.actual[tId][index].x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - tag.actual[tId][index].y*RATIO*scaling,
+                  canvasData.map.x - canvasData.map.w/2 + tag.actual[tId][index + 1].x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - tag.actual[tId][index + 1].y*RATIO*scaling,
+                  "rgba(18,150,219,0.5)",
+                  "rgba(18,150,219,0.5)",
+                );
+              }
+            }
+          })
+        }
+      })
+    }
+    if (tag.simulate) {
+      Object.keys(tag.simulate).forEach((tId) => {
+        // 选中了的才画出来
+        // console.log("this.state.selectedRowKeys", this.state.selectedRowKeys, tId)
+        if (this.state.selectedRowKeys.indexOf(tId) > -1) {
+          let length = tag.simulate[tId].length;
+          tag.simulate[tId].forEach((value, index) => {
+            if (index > length - tagHistoryCount - 2) {
+              let img = this.img_pre_tag;
+              let tag_w = TAG_W;
+              let tag_h = TAG_H;
+              // 最新一条数据用不同图标，同时画出坐标
+              if (index === length - 1) {
                 img = this.img_tag;
                 drawCoord(
                   this.ctx,
@@ -355,10 +473,10 @@ class Anchor extends Component {
               if (index + 1 < length) {
                 drawLine(
                   this.ctx,
-                  canvasData.map.x - canvasData.map.w/2 + tag[tId][index].x*RATIO*scaling,
-                  canvasData.map.y + canvasData.map.h/2 - tag[tId][index].y*RATIO*scaling,
-                  canvasData.map.x - canvasData.map.w/2 + tag[tId][index + 1].x*RATIO*scaling,
-                  canvasData.map.y + canvasData.map.h/2 - tag[tId][index + 1].y*RATIO*scaling,
+                  canvasData.map.x - canvasData.map.w/2 + tag.simulate[tId][index].x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - tag.simulate[tId][index].y*RATIO*scaling,
+                  canvasData.map.x - canvasData.map.w/2 + tag.simulate[tId][index + 1].x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - tag.simulate[tId][index + 1].y*RATIO*scaling,
                   "rgba(18,150,219,0.5)",
                   "rgba(18,150,219,0.5)",
                 );
@@ -366,8 +484,9 @@ class Anchor extends Component {
             }
           })
         }
-      })
+      });
     }
+
 
     // 画anchor
     if (this.state.showAnchor) {
