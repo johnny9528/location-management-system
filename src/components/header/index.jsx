@@ -66,7 +66,6 @@ class Header extends Component {
     Modal.confirm({
       content: '确定退出吗?',
       onOk: () => {
-        console.log('OK', this)
         // 从store中删除保存的user数据
         this.props.logout()
 
@@ -139,7 +138,6 @@ class Header extends Component {
 
     // const {username, level} = storageUtils.getUser()
     const {username, level} = this.props.user
-    // console.log("username",username,level);
 
     const menu = (
       <Menu selectable={false}>
@@ -169,7 +167,7 @@ class Header extends Component {
         <div className="header-left">
           <Link to="/" className="left-nav-header">
             <img src={logo} alt="logo" />
-            <h1>定位管理系统</h1>
+            <span>定位管理系统</span>
           </Link>
         </div>
         <div className="header-middle">

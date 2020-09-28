@@ -17,7 +17,7 @@ import {
 
 import LinkButton from '../../components/link-button'
 import {reqTags, reqDeleteTag, reqSearchTags} from '../../api'
-import {PAGE_SIZE} from '../../utils/constants'
+import { PAGE_SIZE } from '../../config'
 import { getTags } from "../../redux/actions";
 // import storageUtils from '../../utils/storageUtils'
 import AddForm from './add-form'

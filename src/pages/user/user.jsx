@@ -124,9 +124,7 @@ class User extends Component {
 
     // 如果store中有users则直接使用
     if (this.props.users.length > 0) {
-      // console.log("user store "+this.props.users);
       const data = this.nestTable(this.props.users)
-      console.log(data)
       this.setState({ data })
       this.setState({loading: false})
       return;

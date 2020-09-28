@@ -10,8 +10,6 @@ export default {
   saveUser (user) {
     // localStorage.setItem(USER_KEY, JSON.stringify(user))
     store.set(USER_KEY, user)
-    // console.log("user is .....")
-    // console.log(user)
 
   },
 

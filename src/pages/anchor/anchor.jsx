@@ -6,7 +6,8 @@ import { Icon, message } from 'antd'
 import './index.less'
 import LinkButton from '../../components/link-button'
 import { reqAnchors } from '../../api'
-import map from '../../assets/images/map.png'
+// import map from '../../assets/images/map.png'
+import map from '../../assets/images/office126.png'
 import anchor from '../../assets/images/anchor.png'
 import notSavedAnchor from '../../assets/images/notSaved.png'
 import DataControl from './data-control'
@@ -196,7 +197,6 @@ class Anchor extends Component {
       // 记录鼠标点击时坐标
       let x_origin = e.clientX - canvasBox.left;
       let y_origin = e.clientY - canvasBox.top;
-      // console.log("down",x, y);
 
       Object.keys(canvasData.anchor).forEach((id) => {
 
@@ -334,7 +334,6 @@ class Anchor extends Component {
 
   // 画地图和所有anchor
   draw = (canvasData) => {
-    // console.log('draw');
     const { map, anchor, originAnchor } = canvasData;
     // 清空canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -489,7 +488,6 @@ class Anchor extends Component {
   }
 
   render = () => {
-    // console.log("render");
     const user = this.props.user
     // const user = storageUtils.getUser()
     if(user.level !== "admin") {

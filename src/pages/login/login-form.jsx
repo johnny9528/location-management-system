@@ -27,7 +27,6 @@ class LoginForm extends Component {
   };
 
   handleRadio = (e) => {
-    // console.log("the radio is " + e.target.value);
     this.setState({
       radio: e.target.value
     });
@@ -45,14 +44,12 @@ class LoginForm extends Component {
       if (!err) {
         this.setState({loading: true});
 
-        // console.log('提交登陆的ajax请求', values)
         // 请求登陆
         const { username, password } = values;
 
         // radio = admin, 管理员登陆
         if (this.state.radio === "admin") {
           const result = await reqAdminLogin(username, password); // {status: 0, data: user}  {status: 1, msg: 'xxx'}
-          console.log("请求成功", result);
           if (result.code === 200) {
             // 登陆成功
             // 提示登陆成功
@@ -74,7 +71,6 @@ class LoginForm extends Component {
           } else {
             // 登陆失败
             // 提示错误信息
-            console.log("管理员登陆失败,用户名或者密码错误");
             message.error("用户名或者密码错误");
             this.changeCaptcha();
             this.setState({loading: false});
@@ -103,14 +99,13 @@ class LoginForm extends Component {
           } else {
             // 登陆失败
             // 提示错误信息
-            console.log("用户登陆失败,用户名或者密码错误");
             message.error("用户名或者密码错误");
             this.changeCaptcha();
             this.setState({loading: false});
           }
         }
       } else {
-        console.log("检验失败!");
+        //console.log("检验失败!");
       }
     });
   };
@@ -148,7 +143,6 @@ class LoginForm extends Component {
   };
   /* 点击改变验证码 */
   changeCaptcha = () => {
-    console.log("captcha");
     this.props.form.resetFields(["captcha"]);
     this._createCode();
   };
@@ -234,7 +228,6 @@ class LoginForm extends Component {
                     { required: true, whitespace: true, message: "验证码必须输入" },
                     {
                       validator: (rule, value, callback) => {
-                        // console.log("validate code: "+code);
                         if (code.toUpperCase() !== value.toUpperCase()) {
                           callback("验证码错误");
                         }

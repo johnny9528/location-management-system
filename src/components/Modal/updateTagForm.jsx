@@ -2,6 +2,10 @@ import React from 'react'
 import { Form, Input, Tooltip, Icon } from 'antd'
 const Item = Form.Item
 
+
+/**
+ * 通用更新tag自定义组件
+ */
 const UpdateTagForm = (props) => {
 
   const { getFieldDecorator } = props.form;

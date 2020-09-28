@@ -149,9 +149,7 @@ export const initWebsocket = (user) => {
           }
         */
         const singleData = JSON.parse(e.data);
-        console.log(singleData);
 
-        // console.log(singleData)
         if(singleData.description && singleData.description === "actual"){
           if (!tagLoactionData.actual[singleData.tId]) {
             tagLoactionData.actual[singleData.tId] = [{x: singleData.pos[0], y: singleData.pos[1]}]
@@ -174,7 +172,6 @@ export const initWebsocket = (user) => {
           // }
         }
 
-        // console.log(tagLoactionData)
         // 将websocket发送的tag定位数据给canvasData
         dispatch(setTagLocationData(JSON.parse(JSON.stringify(tagLoactionData))))
       };

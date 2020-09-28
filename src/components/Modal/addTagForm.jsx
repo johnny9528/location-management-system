@@ -3,6 +3,9 @@ import { Form, Input, Tooltip, Icon } from 'antd'
 import { connect } from 'react-redux'
 const Item = Form.Item
 
+/**
+ * 通用添加tag自定义组件
+ */
 const AddTagForm = (props) => {
 
   const { getFieldDecorator } = props.form;

@@ -28,15 +28,12 @@ class RegisterForm extends Component {
       if (!err) {
         this.setState({loading: true});
 
-        // console.log('提交登陆的ajax请求', values)
         // 请求登陆
         const { LoginUsername, LoginEmail, LoginPassword } = values;
-        console.log(LoginUsername, LoginEmail, LoginPassword);
 
         //登录
         if (show === "register") {
           const result = await reqUserRegister(LoginUsername, LoginEmail, LoginPassword);
-          console.log("user注册请求成功", result);
           if (result.code === 200) {
             message.success("用户注册成功");
             this.setState({loading: false});
@@ -48,7 +45,6 @@ class RegisterForm extends Component {
         //找回密码
         } else if (show === "getBackPassword") {
           const result = await reqUserGetBackPassword(LoginUsername, LoginEmail, LoginPassword);
-          console.log("user找回密码", result);
           if (result.code === 200) {
             message.success("密码成功找回");
             this.setState({loading: false});
@@ -59,15 +55,9 @@ class RegisterForm extends Component {
           }
         }
       } else {
-        console.log("检验失败!");
+        // console.log("检验失败!");
       }
     });
-
-    // 得到form对象
-    // const form = this.props.form
-    // // 获取表单项的输入数据
-    // const values = form.getFieldsValue()
-    // console.log('handleSubmit()', values)
   }
 
   checkName = debounce(async (value) => {

@@ -38,7 +38,6 @@ class Admin extends Component {
     // const user = storageUtils.getUser()
     const user = this.props.user
     if(Object.keys(user).length === 0) {
-      console.log("redirect");
       return <Redirect to='/login'/>
     }
     return (

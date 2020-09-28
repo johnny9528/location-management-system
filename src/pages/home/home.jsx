@@ -5,7 +5,8 @@ import { connect } from 'react-redux'
 import './index.less'
 import LinkButton from '../../components/link-button'
 import { reqTags, reqUserTags, reqAnchors, reqUserAnchors } from '../../api'
-import mapPic from '../../assets/images/map.png'
+// import mapPic from '../../assets/images/map.png'
+import mapPic from '../../assets/images/office126.png'
 import anchorPic from '../../assets/images/anchor.png'
 import tagPic from '../../assets/images/tag.png'
 import preTagPic from '../../assets/images/pre_tag.png'
@@ -262,7 +263,6 @@ class Anchor extends Component {
       // 记录鼠标点击时坐标
       let x_origin = e.clientX - canvasBox.left;
       let y_origin = e.clientY - canvasBox.top;
-      // console.log("down",x, y);
 
       // 记录移动前地图坐标，anchor坐标
       let canvasData_before = JSON.parse(JSON.stringify(canvasData));
@@ -331,123 +331,20 @@ class Anchor extends Component {
     );
 
     // 画tag
-    // console.log(tag.simulate);
-    // if (tag) {
-    // Object.keys(tag).forEach((tId) => {
-      //   // 选中了的才画出来
-      //   // console.log("this.state.selectedRowKeys", this.state.selectedRowKeys, tId)
-      //   if (this.state.selectedRowKeys.indexOf(tId) > -1) {
-      //     let length = tag[tId].length;
-      //     tag[tId].forEach((value, index) => {
-      //       if (index > length - tagHistoryCount - 2) {
-      //         let img = this.img_pre_tag;
-      //         let tag_w = TAG_W;
-      //         let tag_h = TAG_H;
-      //         // 最新一条数据用不同图标，同时画出坐标
-      //         if (index === length - 1) {
-      //           console.log(true, "value", value, index);
-      //           img = this.img_tag;
-      //           drawCoord(
-      //             this.ctx,
-      //             canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
-      //             canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
-      //             value.x,
-      //             value.y,
-      //           );
-      //           drawID(
-      //             this.ctx,
-      //             canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
-      //             canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
-      //             tId
-      //           )
-      //         }
-      //         this.ctx.drawImage(
-      //           img,
-      //           canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling - tag_w/2,
-      //           canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling - tag_h/2,
-      //           tag_w,
-      //           tag_h,
-      //         );
-      //         if (index + 1 < length) {
-      //           drawLine(
-      //             this.ctx,
-      //             canvasData.map.x - canvasData.map.w/2 + tag[tId][index].x*RATIO*scaling,
-      //             canvasData.map.y + canvasData.map.h/2 - tag[tId][index].y*RATIO*scaling,
-      //             canvasData.map.x - canvasData.map.w/2 + tag[tId][index + 1].x*RATIO*scaling,
-      //             canvasData.map.y + canvasData.map.h/2 - tag[tId][index + 1].y*RATIO*scaling,
-      //             "rgba(18,150,219,0.5)",
-      //             "rgba(18,150,219,0.5)",
-      //           );
-      //         }
-      //       }
-      //     })
-      //   }
-      // });
-    // }
-    if (tag.actual) {
-      Object.keys(tag.actual).forEach((tId) => {
+    if (tag) {
+    Object.keys(tag).forEach((tId) => {
         // 选中了的才画出来
         // console.log("this.state.selectedRowKeys", this.state.selectedRowKeys, tId)
         if (this.state.selectedRowKeys.indexOf(tId) > -1) {
-          let length = tag.actual[tId].length;
-          tag.actual[tId].forEach((value, index) => {
-            if (index > length - tagHistoryCount - 2) {
-              let img = this.img_pre_actual_tag;
-              let tag_w = TAG_W;
-              let tag_h = TAG_H;
-              // 最新一条数据用不同图标，同时画出坐标
-              if (index === length - 1) {
-                img = this.img_actual_tag;
-                drawCoord(
-                  this.ctx,
-                  canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
-                  canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
-                  value.x,
-                  value.y,
-                );
-                drawID(
-                  this.ctx,
-                  canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
-                  canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
-                  tId
-                )
-              }
-              this.ctx.drawImage(
-                img,
-                canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling - tag_w/2,
-                canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling - tag_h/2,
-                tag_w,
-                tag_h,
-              );
-              if (index + 1 < length) {
-                drawLine(
-                  this.ctx,
-                  canvasData.map.x - canvasData.map.w/2 + tag.actual[tId][index].x*RATIO*scaling,
-                  canvasData.map.y + canvasData.map.h/2 - tag.actual[tId][index].y*RATIO*scaling,
-                  canvasData.map.x - canvasData.map.w/2 + tag.actual[tId][index + 1].x*RATIO*scaling,
-                  canvasData.map.y + canvasData.map.h/2 - tag.actual[tId][index + 1].y*RATIO*scaling,
-                  "rgba(18,150,219,0.5)",
-                  "rgba(18,150,219,0.5)",
-                );
-              }
-            }
-          })
-        }
-      })
-    }
-    if (tag.simulate) {
-      Object.keys(tag.simulate).forEach((tId) => {
-        // 选中了的才画出来
-        // console.log("this.state.selectedRowKeys", this.state.selectedRowKeys, tId)
-        if (this.state.selectedRowKeys.indexOf(tId) > -1) {
-          let length = tag.simulate[tId].length;
-          tag.simulate[tId].forEach((value, index) => {
+          let length = tag[tId].length;
+          tag[tId].forEach((value, index) => {
             if (index > length - tagHistoryCount - 2) {
               let img = this.img_pre_tag;
               let tag_w = TAG_W;
               let tag_h = TAG_H;
               // 最新一条数据用不同图标，同时画出坐标
               if (index === length - 1) {
+                // console.log(true, "value", value, index);
                 img = this.img_tag;
                 drawCoord(
                   this.ctx,
@@ -473,10 +370,10 @@ class Anchor extends Component {
               if (index + 1 < length) {
                 drawLine(
                   this.ctx,
-                  canvasData.map.x - canvasData.map.w/2 + tag.simulate[tId][index].x*RATIO*scaling,
-                  canvasData.map.y + canvasData.map.h/2 - tag.simulate[tId][index].y*RATIO*scaling,
-                  canvasData.map.x - canvasData.map.w/2 + tag.simulate[tId][index + 1].x*RATIO*scaling,
-                  canvasData.map.y + canvasData.map.h/2 - tag.simulate[tId][index + 1].y*RATIO*scaling,
+                  canvasData.map.x - canvasData.map.w/2 + tag[tId][index].x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - tag[tId][index].y*RATIO*scaling,
+                  canvasData.map.x - canvasData.map.w/2 + tag[tId][index + 1].x*RATIO*scaling,
+                  canvasData.map.y + canvasData.map.h/2 - tag[tId][index + 1].y*RATIO*scaling,
                   "rgba(18,150,219,0.5)",
                   "rgba(18,150,219,0.5)",
                 );
@@ -486,6 +383,108 @@ class Anchor extends Component {
         }
       });
     }
+    // if (tag.actual) {
+    //   Object.keys(tag.actual).forEach((tId) => {
+    //     // 选中了的才画出来
+    //     // console.log("this.state.selectedRowKeys", this.state.selectedRowKeys, tId)
+    //     if (this.state.selectedRowKeys.indexOf(tId) > -1) {
+    //       let length = tag.actual[tId].length;
+    //       tag.actual[tId].forEach((value, index) => {
+    //         if (index > length - tagHistoryCount - 2) {
+    //           let img = this.img_pre_actual_tag;
+    //           let tag_w = TAG_W;
+    //           let tag_h = TAG_H;
+    //           // 最新一条数据用不同图标，同时画出坐标
+    //           if (index === length - 1) {
+    //             img = this.img_actual_tag;
+    //             drawCoord(
+    //               this.ctx,
+    //               canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
+    //               canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
+    //               value.x,
+    //               value.y,
+    //             );
+    //             drawID(
+    //               this.ctx,
+    //               canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
+    //               canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
+    //               tId
+    //             )
+    //           }
+    //           this.ctx.drawImage(
+    //             img,
+    //             canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling - tag_w/2,
+    //             canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling - tag_h/2,
+    //             tag_w,
+    //             tag_h,
+    //           );
+    //           if (index + 1 < length) {
+    //             drawLine(
+    //               this.ctx,
+    //               canvasData.map.x - canvasData.map.w/2 + tag.actual[tId][index].x*RATIO*scaling,
+    //               canvasData.map.y + canvasData.map.h/2 - tag.actual[tId][index].y*RATIO*scaling,
+    //               canvasData.map.x - canvasData.map.w/2 + tag.actual[tId][index + 1].x*RATIO*scaling,
+    //               canvasData.map.y + canvasData.map.h/2 - tag.actual[tId][index + 1].y*RATIO*scaling,
+    //               "rgba(18,150,219,0.5)",
+    //               "rgba(18,150,219,0.5)",
+    //             );
+    //           }
+    //         }
+    //       })
+    //     }
+    //   })
+    // }
+    // if (tag.simulate) {
+    //   Object.keys(tag.simulate).forEach((tId) => {
+    //     // 选中了的才画出来
+    //     // console.log("this.state.selectedRowKeys", this.state.selectedRowKeys, tId)
+    //     if (this.state.selectedRowKeys.indexOf(tId) > -1) {
+    //       let length = tag.simulate[tId].length;
+    //       tag.simulate[tId].forEach((value, index) => {
+    //         if (index > length - tagHistoryCount - 2) {
+    //           let img = this.img_pre_tag;
+    //           let tag_w = TAG_W;
+    //           let tag_h = TAG_H;
+    //           // 最新一条数据用不同图标，同时画出坐标
+    //           if (index === length - 1) {
+    //             img = this.img_tag;
+    //             drawCoord(
+    //               this.ctx,
+    //               canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
+    //               canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
+    //               value.x,
+    //               value.y,
+    //             );
+    //             drawID(
+    //               this.ctx,
+    //               canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling,
+    //               canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling,
+    //               tId
+    //             )
+    //           }
+    //           this.ctx.drawImage(
+    //             img,
+    //             canvasData.map.x - canvasData.map.w/2 + value.x*RATIO*scaling - tag_w/2,
+    //             canvasData.map.y + canvasData.map.h/2 - value.y*RATIO*scaling - tag_h/2,
+    //             tag_w,
+    //             tag_h,
+    //           );
+    //           if (index + 1 < length) {
+    //             drawLine(
+    //               this.ctx,
+    //               canvasData.map.x - canvasData.map.w/2 + tag.simulate[tId][index].x*RATIO*scaling,
+    //               canvasData.map.y + canvasData.map.h/2 - tag.simulate[tId][index].y*RATIO*scaling,
+    //               canvasData.map.x - canvasData.map.w/2 + tag.simulate[tId][index + 1].x*RATIO*scaling,
+    //               canvasData.map.y + canvasData.map.h/2 - tag.simulate[tId][index + 1].y*RATIO*scaling,
+    //               "rgba(18,150,219,0.5)",
+    //               "rgba(18,150,219,0.5)",
+    //             );
+    //           }
+    //         }
+    //       })
+    //     }
+    //   });
+    // }
 
 
     // 画anchor
@@ -625,7 +624,7 @@ class Anchor extends Component {
 
   // props改变时触发
   componentWillReceiveProps = () => {
-    console.log("componentWillReceiveProps", this.props.tagLoactionData)
+    // console.log("componentWillReceiveProps", this.props.tagLoactionData)
     let canvasData = JSON.parse(JSON.stringify(this.state.canvasData));
     // 将websocket收到的数据给canvasData
     canvasData.tag = this.props.tagLoactionData;
